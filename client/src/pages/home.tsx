@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingCart, Star, Truck, Shield, Leaf, ChevronRight, ArrowRight, Package, Check, ArrowUp } from "lucide-react";
+import { ShoppingCart, Star, Shield, Leaf, ChevronRight, ArrowRight, Package, Check, ArrowUp } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import { useCart } from "@/lib/cart";
 import { useToast } from "@/hooks/use-toast";
@@ -83,29 +83,6 @@ export default function Home() {
                 Learn More
               </Button>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-12 bg-card border-b">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            {[
-              { icon: Truck, title: "Direct From Apiary", desc: "Producers involved in harvesting" },
-              { icon: Shield, title: "Raw & Organic", desc: "Minimally processed, unheated" },
-              { icon: Leaf, title: "Himalayan Multiflora", desc: "Rich, authentic flavor profile" },
-              { icon: Star, title: "Affordable Purity", desc: "High quality at fair prices" },
-            ].map((feature, i) => (
-              <div key={i} className="flex flex-col items-center text-center gap-3">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                  <feature.icon className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground">{feature.desc}</p>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>

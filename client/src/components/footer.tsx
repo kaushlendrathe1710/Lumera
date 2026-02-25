@@ -7,13 +7,13 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center">
-              <div className="w-20 h-20 flex items-center justify-center">
+              {/* <div className="w-20 h-20 flex items-center justify-center">
                 <img src="/logo.png" alt="Lumera Logo" />
-              </div>
-              {/* <span className="font-serif text-xl font-bold">Lumera</span> */}
+              </div> */}
+              <span className="font-serif text-xl font-bold">Lumera</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Artisanal perfumes — crafted from quality ingredients with care and attention to detail.
+              Artisanal perfumes - crafted from quality ingredients with care and attention to detail.
             </p>
           </div>
 

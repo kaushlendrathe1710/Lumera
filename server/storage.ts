@@ -37,6 +37,7 @@ export interface IStorage {
 
   getProduct(id: string): Promise<ProductWithCategory | undefined>;
   getAllProducts(): Promise<Product[]>;
+  searchProducts(query: string, categoryId?: string): Promise<ProductWithCategory[]>;
   getRelatedProducts(productId: string, limit?: number): Promise<Product[]>;
   createProduct(product: InsertProduct): Promise<Product>;
   updateProduct(id: string, data: Partial<InsertProduct>): Promise<Product | undefined>;
@@ -242,6 +243,28 @@ export class DatabaseStorage implements IStorage {
       with: { category: true },
     });
     return productsWithCategory as Product[];
+  }
+
+  async searchProducts(query: string, categoryId?: string): Promise<ProductWithCategory[]> {
+    const searchTerm = `%${query}%`;
+    const conditions = [
+      eq(products.isActive, true),
+      or(
+        ilike(products.name, searchTerm),
+        ilike(products.description, searchTerm),
+        ilike(products.shortDescription, searchTerm),
+        ilike(products.sku, searchTerm),
+      )!,
+    ];
+    if (categoryId) {
+      conditions.push(eq(products.categoryId, categoryId));
+    }
+    const rows = await db.query.products.findMany({
+      where: and(...conditions),
+      orderBy: [desc(products.createdAt)],
+      with: { category: true },
+    });
+    return rows as ProductWithCategory[];
   }
 
   async createProduct(insertProduct: InsertProduct): Promise<Product> {

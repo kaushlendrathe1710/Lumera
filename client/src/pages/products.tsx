@@ -1,10 +1,9 @@
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -19,7 +18,6 @@ import {
   ArrowLeft,
   Package,
   Star,
-  Check,
   ArrowUp,
   Heart,
 } from "lucide-react";
@@ -60,10 +58,50 @@ export default function Products() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("name");
   const [, navigate] = useLocation();
+  const searchString = useSearch();
 
-  const { data: products, isLoading } = useQuery<ProductWithCategory[]>({
+  // Parse URL params reactively via Wouter's useSearch
+  const urlSearchQuery = useMemo(() => {
+    const params = new URLSearchParams(searchString);
+    return params.get("q") || "";
+  }, [searchString]);
+
+  const urlCategory = useMemo(() => {
+    const params = new URLSearchParams(searchString);
+    return params.get("category") || "";
+  }, [searchString]);
+
+  // Sync local state from URL whenever it changes
+  useEffect(() => {
+    setSearchQuery(urlSearchQuery);
+    if (urlCategory) setSelectedCategory(urlCategory);
+    else setSelectedCategory("all");
+  }, [urlSearchQuery, urlCategory]);
+
+  // Fetch ALL products (used when there's no search query)
+  const { data: products, isLoading: isLoadingAll } = useQuery<ProductWithCategory[]>({
     queryKey: ["/api/products"],
+    enabled: !urlSearchQuery, // only fetch when not searching
   }) as { data: ProductWithCategory[] | undefined; isLoading: boolean };
+
+  // Fetch SEARCH results from the server API (used when there IS a search query)
+  const { data: searchResults, isLoading: isLoadingSearch } = useQuery<ProductWithCategory[]>({
+    queryKey: ["/api/products/search", urlSearchQuery, urlCategory !== "all" ? urlCategory : ""],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      params.set("q", urlSearchQuery);
+      if (urlCategory && urlCategory !== "all") params.set("category", urlCategory);
+      const res = await fetch(`/api/products/search?${params.toString()}`);
+      if (!res.ok) throw new Error("Search failed");
+      return res.json();
+    },
+    enabled: !!urlSearchQuery, // only fetch when searching
+  });
+
+  const isLoading = urlSearchQuery ? isLoadingSearch : isLoadingAll;
+
+  // Choose the right source of products based on whether we're searching
+  const sourceProducts = urlSearchQuery ? (searchResults || []) : (products || []);
 
   const { data: categories } = useQuery<Category[]>({
     queryKey: ["/api/categories/active"],
@@ -78,10 +116,7 @@ export default function Products() {
   const ratingsMap = useMemo(() => {
     const map = new Map<string, { avgRating: number; reviewCount: number }>();
     ratingsData?.forEach((r) =>
-      map.set(r.productId, {
-        avgRating: r.avgRating,
-        reviewCount: r.reviewCount,
-      }),
+      map.set(r.productId, { avgRating: r.avgRating, reviewCount: r.reviewCount }),
     );
     return map;
   }, [ratingsData]);
@@ -92,28 +127,15 @@ export default function Products() {
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 400);
     };
-    // scroll to top on mount
-    window.scrollTo({ top: 0, behavior: "smooth" });
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const filteredProducts = useMemo(() => {
-    if (!products) return [];
+    let filtered = sourceProducts.filter((p) => p.isActive);
 
-    let filtered = products.filter((p) => p.isActive);
-
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (p) =>
-          p.name.toLowerCase().includes(query) ||
-          p.description.toLowerCase().includes(query) ||
-          (p.category?.name && p.category.name.toLowerCase().includes(query)),
-      );
-    }
-
-    if (selectedCategory && selectedCategory !== "all") {
+    // Category filter (only needed when not searching, since search API handles it)
+    if (!urlSearchQuery && selectedCategory && selectedCategory !== "all") {
       filtered = filtered.filter((p) => p.categoryId === selectedCategory);
     }
 
@@ -130,7 +152,7 @@ export default function Products() {
     });
 
     return filtered;
-  }, [products, searchQuery, selectedCategory, sortBy]);
+  }, [sourceProducts, urlSearchQuery, selectedCategory, sortBy]);
 
   return (
     <>
@@ -162,17 +184,6 @@ export default function Products() {
           </div>
 
           <div className="flex flex-col md:flex-row gap-4 mb-8">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-                data-testid="input-search"
-              />
-            </div>
-
             <Select
               value={selectedCategory}
               onValueChange={setSelectedCategory}
