@@ -123,7 +123,7 @@ export default function Login() {
     onSuccess: async (data) => {
       toast({
         title: "Registration Complete",
-        description: "Welcome to Papa Honey!",
+        description: "Welcome to Lumera!",
       });
       await refetch();
       const redirectTo = data.user?.role === "admin" || data.user?.role === "superadmin" ? "/admin" : "/dashboard";

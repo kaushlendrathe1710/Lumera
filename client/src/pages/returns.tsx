@@ -32,7 +32,7 @@ export default function ReturnsPage() {
               Returns & Cancellations
             </h1>
             <p className="text-lg md:text-xl lg:text-2xl opacity-90">
-              Learn about our return, refund, and cancellation policies for Papa Honey products
+              Learn about our return, refund, and cancellation policies for Lumera products
             </p>
           </div>
         </div>
@@ -42,9 +42,9 @@ export default function ReturnsPage() {
           {/* Intro */}
           <div className="mb-8 text-muted-foreground">
             <p className="text-base md:text-lg leading-relaxed">
-              At Papa Honey, we want you to be completely satisfied with your purchase of pure
-              Himalayan honey. If you're not happy with your order for any reason, we offer
-              easy returns, refunds, and cancellations as part of our customer satisfaction commitment.
+              At Lumera, we want you to be completely satisfied with your purchase of our fragrances.
+              If you're not happy with your order for any reason, we offer easy returns, refunds, and
+              cancellations as part of our customer satisfaction commitment.
             </p>
           </div>
 
@@ -63,11 +63,11 @@ export default function ReturnsPage() {
                   <ul className="space-y-3 text-sm">
                     <li className="flex items-start gap-2">
                       <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                      <span>Unopened honey jars can be returned within 7 days of delivery</span>
+                      <span>Unopened perfume bottles can be returned within 7 days of delivery</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                      <span>Jars must be sealed with original tamper-proof seal intact</span>
+                      <span>Bottles must be sealed with original tamper-proof seal intact</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
@@ -75,7 +75,7 @@ export default function ReturnsPage() {
                     </li>
                     <li className="flex items-start gap-2">
                       <AlertCircle className="h-4 w-4 text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" />
-                      <span>Opened honey jars cannot be returned (food safety reasons)</span>
+                      <span>Opened perfume bottles cannot be returned for hygiene reasons</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
@@ -207,12 +207,12 @@ export default function ReturnsPage() {
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-2 flex items-center gap-2">
                     <HelpCircle size={18} className="text-primary" />
-                    How do I initiate a return for my honey order?
+                      How do I initiate a return for my order?
                   </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Log in to your Papa Honey account, go to "My Orders", select the
-                    honey jar you want to return, and click on "Return". Make sure the
-                    jar is unopened with the seal intact. Follow the instructions to
+                    <p className="text-sm text-muted-foreground">
+                    Log in to your Lumera account, go to "My Orders", select the
+                    item you want to return, and click on "Return". Make sure the
+                    bottle is unopened with the seal intact. Follow the instructions to
                     complete your return request.
                   </p>
                 </CardContent>
@@ -222,13 +222,12 @@ export default function ReturnsPage() {
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-2 flex items-center gap-2">
                     <HelpCircle size={18} className="text-primary" />
-                    Can I return honey if I've opened the jar?
+                      Can I return a perfume if I've opened the bottle?
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    No, opened honey jars cannot be returned due to food safety and
-                    hygiene regulations. However, if you received a damaged or defective
-                    product, contact us within 48 hours with photos and we'll arrange
-                    a replacement or refund.
+                    No, opened perfume bottles cannot be returned for hygiene reasons.
+                    However, if you received a damaged or defective product, contact us
+                    within 48 hours with photos and we'll arrange a replacement or refund.
                   </p>
                 </CardContent>
               </Card>
@@ -237,10 +236,10 @@ export default function ReturnsPage() {
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-2 flex items-center gap-2">
                     <HelpCircle size={18} className="text-primary" />
-                    What if my honey jar arrived damaged?
+                      What if my product arrived damaged?
                   </h3>
-                  <p className="text-sm text-muted-foreground">
-                    If your honey jar arrives broken or damaged, do NOT accept the
+                    <p className="text-sm text-muted-foreground">
+                    If your perfume bottle arrives broken or damaged, do NOT accept the
                     delivery. Take photos immediately and contact us at
                     kaushlendra.k12@fms.edu or call +91 9650503696 within 48 hours.
                     We'll send a replacement with priority shipping at no cost.
@@ -254,7 +253,7 @@ export default function ReturnsPage() {
                     <HelpCircle size={18} className="text-primary" />
                     How long does it take to get my refund?
                   </h3>
-                  <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                     Refunds are processed within 5-7 business days after the returned
                     item is received and verified at our facility. The timeline depends
                     on your payment method: UPI/Net Banking (3-5 days), Cards (5-7 days),
@@ -272,7 +271,7 @@ export default function ReturnsPage() {
                   <p className="text-sm text-muted-foreground">
                     No, orders cannot be cancelled once they are shipped. However, you
                     can refuse delivery or initiate a return after receiving the product
-                    if the jar is unopened. For urgent concerns, contact our customer
+                      if the bottle is unopened. For urgent concerns, contact our customer
                     service team immediately.
                   </p>
                 </CardContent>
@@ -284,10 +283,10 @@ export default function ReturnsPage() {
                     <HelpCircle size={18} className="text-primary" />
                     What about bulk orders or wholesale returns?
                   </h3>
-                  <p className="text-sm text-muted-foreground">
-                    For bulk orders (10+ jars) or wholesale purchases, please contact
-                    our customer service team directly at kaushlendra.k12@fms.edu or
-                    +91 9650503696 for customized return and cancellation arrangements.
+                    <p className="text-sm text-muted-foreground">
+                    For bulk orders or wholesale purchases, please contact our customer
+                    service team directly at kaushlendra.k12@fms.edu or +91 9650503696 for
+                    customized return and cancellation arrangements.
                   </p>
                 </CardContent>
               </Card>
@@ -301,7 +300,7 @@ export default function ReturnsPage() {
                 Need Help With Returns or Cancellations?
               </h3>
               <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-                Our Papa Honey customer service team is available to assist you with
+                Our Lumera customer service team is available to assist you with
                 any questions about returns, refunds, or cancellations.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">

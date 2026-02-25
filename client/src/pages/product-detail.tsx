@@ -350,7 +350,7 @@ export default function ProductDetail() {
                       <Shield className="h-5 w-5 text-primary" />
                       <div>
                         <p className="font-medium text-foreground">Quality Guaranteed</p>
-                        <p className="text-sm text-muted-foreground">100% authentic honey</p>
+                        <p className="text-sm text-muted-foreground">100% authentic</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">

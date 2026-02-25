@@ -8,12 +8,12 @@ export function Footer() {
           <div>
             <div className="flex items-center">
               <div className="w-20 h-20 flex items-center justify-center">
-                <img src="/logo.png" alt="Papa Honey Logo" />
+                <img src="/logo.png" alt="Lumera Logo" />
               </div>
-              {/* <span className="font-serif text-xl font-bold">Papa Honey</span> */}
+              {/* <span className="font-serif text-xl font-bold">Lumera</span> */}
             </div>
             <p className="text-sm text-muted-foreground">
-              Raw organic Himalayan multiflora honey — producer-harvested and minimally processed.
+              Artisanal perfumes — crafted from quality ingredients with care and attention to detail.
             </p>
           </div>
 
@@ -46,7 +46,7 @@ export function Footer() {
         </div>
 
         <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; 2026 Papa Honey. All rights reserved.</p>
+          <p>&copy; 2026 Lumera. All rights reserved.</p>
         </div>
       </div>
     </footer>

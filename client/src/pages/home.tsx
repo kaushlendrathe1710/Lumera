@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Nav } from "@/components/nav";
 import { Footer } from "@/components/footer";
 import type { ProductWithCategory as Product } from "@shared/schema";
-import heroImage from "@/assets/images/hero-honey.png";
+import heroImage from "@/assets/images/hero.jpg";
 import uaeBackground from "@/assets/images/uae-background.png";
 
 export default function Home() {
@@ -51,9 +51,9 @@ export default function Home() {
 
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
-          <img
+            <img
             src={heroImage}
-            alt="Premium honey collection"
+            alt="Signature perfume collection"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
@@ -62,16 +62,16 @@ export default function Home() {
         <div className="relative container mx-auto px-4 py-24 md:py-32 lg:py-40">
           <div className="max-w-2xl">
             <Badge className="mb-4 bg-primary/90 text-primary-foreground">
-              Raw Himalayan Honey
+              Signature Fragrances
             </Badge>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white mb-6 leading-tight">
-              Papa Honey — <br />
-              <span className="text-primary">Pure. Honest. Himalayan.</span>
+              Lumera — <br />
+              <span className="text-primary">Artisanal. Elegant. Timeless.</span>
             </h1>
             <p className="text-lg md:text-xl text-gray-200 mb-8 leading-relaxed">
-              Papa Honey is a family-led brand delivering raw, organic Himalayan multiflora honey.
-              We harvest directly from southern Himalayan apiaries and minimally process each batch
-              to preserve natural enzymes, aroma, and nutrients.
+              Lumera crafts exquisite perfumes inspired by timeless fragrances. Our blends are
+              thoughtfully composed from high-quality, sustainably sourced ingredients to deliver
+              a luxurious and memorable scent experience.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link href="/products">
@@ -115,9 +115,9 @@ export default function Home() {
           <div className="flex items-center justify-between mb-10">
             <div>
               <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-2">
-                Featured Products
-              </h2>
-              <p className="text-muted-foreground">Our most popular honey selections</p>
+                  Featured Products
+                </h2>
+                <p className="text-muted-foreground">Our most popular perfume selections</p>
             </div>
             <Link href="/products">
               <Button variant="ghost" className="gap-2" data-testid="link-view-all">
@@ -251,12 +251,12 @@ export default function Home() {
         </div>
         <div className="relative container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">
-            Sourced from Southern Himalayan Regions
+            Artisanal Fragrance Blends
           </h2>
           <p className="text-lg text-gray-200 max-w-2xl mx-auto mb-8">
-            Our multiflora honey is naturally sourced from the southern Himalayas. We manage the
-            harvesting process ourselves to ensure authentic composition and minimal handling,
-            so every jar reflects our commitment to purity and transparency.
+            Our perfumes are crafted from carefully selected ingredients sourced from trusted
+            growers and partners. Each fragrance is blended and matured to achieve depth, balance,
+            and long-lasting character.
           </p>
           <Link href="/products">
             <Button size="lg" className="gap-2">
@@ -270,28 +270,29 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-4">
-              Why Choose Papa Honey?
+              Why Choose Lumera?
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Honesty, transparency, and consistency — every jar reflects our hands-on harvesting approach.
+              Craftsmanship, transparency, and enduring quality — every bottle reflects our
+              dedication to exceptional perfumery.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                title: "Raw & Minimally Processed",
-                description: "We avoid excessive heating to preserve enzymes, aroma, and nutrients.",
+                title: "Artisanal Blends",
+                description: "Handcrafted compositions focused on balance and longevity.",
                 icon: Leaf,
               },
               {
-                title: "Producer-Driven Quality",
-                description: "We harvest ourselves, ensuring full control from apiary to jar.",
+                title: "Sustainably Sourced",
+                description: "We partner with trusted suppliers for high-quality raw materials.",
                 icon: Shield,
               },
               {
-                title: "Affordable Purity",
-                description: "Our mission is to make pure Himalayan honey accessible without compromising quality.",
+                title: "Luxury Within Reach",
+                description: "Premium fragrances thoughtfully priced for everyday elegance.",
                 icon: Star,
               },
             ].map((item, i) => (

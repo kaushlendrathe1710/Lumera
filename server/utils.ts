@@ -229,7 +229,7 @@ export const orderInvoiceTemplate = (order: OrderWithItems, user: User, qrCodeDa
     <!-- Header -->
     <div class="header">
       <div class="logo-section">
-        <img src="${logoBase64}" alt="Papa Honey Logo" class="logo">
+        <img src="${logoBase64}" alt="Lumera Logo" class="logo">
       </div>
       <div class="invoice-info">
         <div class="invoice-title">INVOICE</div>
@@ -256,7 +256,7 @@ export const orderInvoiceTemplate = (order: OrderWithItems, user: User, qrCodeDa
       <div class="address-box">
         <div class="address-title">From</div>
         <div class="address-content">
-          <div class="bold">Papa Honey</div>
+          <div class="bold">Lumera</div>
           <div>Based in India</div>
           <div>Himalayan producers network</div>
           <div>kaushlendra.k12@fms.edu</div>
@@ -299,14 +299,14 @@ export const orderInvoiceTemplate = (order: OrderWithItems, user: User, qrCodeDa
       <div class="signature-section">
         <img src="${signatureBase64}" alt="Authorized Signature" class="signature-image">
         <div class="signature-text">(Authorized Signatory)</div>
-        <div class="company-name">Papa Honey</div>
+        <div class="company-name">Lumera</div>
       </div>
     </div>
 
     <!-- Footer Info -->
     <div class="footer-info">
-      <div class="bold">Thank you for your purchase!</div>
-      <div>Papa Honey | Based in India — Himalayan producers network | kaushlendra.k12@fms.edu</div>
+        <div class="bold">Thank you for your purchase!</div>
+      <div>Lumera | Based in India — perfumery & sourcing network | kaushlendra.k12@fms.edu</div>
       <div>For support, contact us at kaushlendra.k12@fms.edu</div>
     </div>
   </div>

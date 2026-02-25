@@ -38,9 +38,9 @@ export async function sendOtpEmail(email: string, otp: string): Promise<boolean>
     transporter = await createTransporter();
   }
   const mailOptions = {
-    from: `"Papa Honey" <${process.env.SMTP_USER}>`,
+    from: `"Lumera" <${process.env.SMTP_USER}>`,
     to: email,
-    subject: "Your Login Code - Papa Honey",
+    subject: "Your Login Code - Lumera",
     html: `
       <!DOCTYPE html>
       <html>
@@ -52,9 +52,9 @@ export async function sendOtpEmail(email: string, otp: string): Promise<boolean>
           <div style="max-width: 480px; margin: 0 auto; background-color: white; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
             <div style="text-align: center; margin-bottom: 5px;">
               <div style="width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                <img src="https://www.kumarhoney.com/logo.png" alt="Papa Honey Logo" />
+                <img src="https://www.kumarhoney.com/logo.png" alt="Lumera Logo" />
               </div>
-              <h1 style="color: #1f2937; font-size: 24px; margin: 0;">Papa Honey</h1>
+              <h1 style="color: #1f2937; font-size: 24px; margin: 0;">Lumera</h1>
             </div>
 
             <h2 style="color: #374151; text-align: center; font-size: 20px; margin-bottom: 20px;">Your Verification Code</h2>
@@ -74,8 +74,8 @@ export async function sendOtpEmail(email: string, otp: string): Promise<boolean>
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
 
             <p style="color: #9ca3af; text-align: center; font-size: 12px; margin: 0;">
-              &copy; 2026 Papa Honey. All rights reserved.<br>
-              Based in India — Himalayan producers network
+              &copy; 2026 Lumera. All rights reserved.<br>
+              Based in India — perfumery & sourcing network
             </p>
           </div>
         </body>

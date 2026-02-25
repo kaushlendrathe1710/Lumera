@@ -14,7 +14,7 @@ export default function Contact() {
           <div className="text-center space-y-4">
             <h1 className="text-4xl md:text-5xl font-serif font-bold text-foreground">Get in Touch</h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Have questions about our honey or want to place a wholesale order? We'd love to hear from you.
+              Have questions about our fragrances or want to place a wholesale order? We'd love to hear from you.
             </p>
           </div>
 
@@ -58,9 +58,9 @@ export default function Contact() {
             <CardContent className="p-8">
               <h2 className="text-2xl font-semibold text-foreground mb-4">About Our Service</h2>
               <p className="text-muted-foreground leading-relaxed">
-                We are a producer-led brand sourcing and harvesting Himalayan multiflora honey directly from the
-                Southern Himalayan regions. Whether you're interested in wholesale inquiries, have questions about
-                our products, or need more information about our harvesting practices, feel free to reach out via
+                Lumera is a boutique perfume house focused on crafting refined fragrances from responsibly sourced
+                and high-quality ingredients. Whether you're interested in wholesale inquiries, have questions about
+                our fragrances, or need more information about our sourcing and production, feel free to reach out via
                 email or phone. We're here to help!
               </p>
             </CardContent>

@@ -28,15 +28,13 @@ export default function Shipping() {
           <Card className="border-2">
             <CardContent className="p-8">
               <p className="text-lg text-muted-foreground leading-relaxed">
-                At Papa Honey, we're committed to delivering your orders quickly, safely, and reliably. We offer various
-                shipping options to meet your needs and partner with trusted logistics providers to ensure your pure
-                Himalayan honey reaches you in perfect condition.
+                At Lumera, we're committed to delivering your orders quickly, safely, and reliably. We offer a range of
+                shipping options and partner with trusted logistics providers to ensure your perfumes arrive in perfect condition.
               </p>
 
               <p className="text-lg text-muted-foreground leading-relaxed mt-4">
                 We offer FREE delivery on all orders across UAE. There are no hidden charges or minimum order
-                requirements. We believe pure Himalayan honey should be accessible to everyone, so we've eliminated
-                delivery fees completely.
+                requirements. We want Lumera fragrances to be accessible while ensuring careful handling for each package.
               </p>
             </CardContent>
           </Card>
@@ -193,7 +191,7 @@ export default function Shipping() {
                     <CheckCircle className="h-5 w-5 text-primary mt-0.5" />
                     <div>
                       <p className="text-foreground font-medium">Your Account</p>
-                      <p className="text-sm text-muted-foreground">Check "My Orders" section in your Papa Honey account</p>
+                      <p className="text-sm text-muted-foreground">Check "My Orders" section in your Lumera account</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -250,7 +248,7 @@ export default function Shipping() {
                   </div>
                   <div className="flex items-start gap-3">
                     <CheckCircle className="h-5 w-5 text-primary mt-0.5" />
-                    <p className="text-sm text-foreground">Special packaging ensures honey jars arrive safely</p>
+                    <p className="text-sm text-foreground">Special packaging ensures perfume bottles arrive safely</p>
                   </div>
                   <div className="flex items-start gap-3">
                     <CheckCircle className="h-5 w-5 text-primary mt-0.5" />

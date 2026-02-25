@@ -80,9 +80,9 @@ export function CustomerDashboardLayout({ children, title }: DashboardLayoutProp
             <Link href="/">
               <div className="flex items-center gap-2 cursor-pointer">
                 <div className="w-20 h-20 flex items-center justify-center">
-                <img src="/logo.png" alt="Papa Honey Logo" />
+                <img src="/logo.png" alt="Lumera Logo" />
               </div>
-                {/* <span className="font-serif text-lg font-bold text-foreground">Papa Honey</span> */}
+                {/* <span className="font-serif text-lg font-bold text-foreground">Lumera</span> */}
               </div>
             </Link>
           </SidebarHeader>
@@ -237,7 +237,7 @@ export function AdminDashboardLayout({ children, title }: DashboardLayoutProps) 
             <Link href="/">
               <div className="flex items-center gap-2 cursor-pointer">
                 <div className="w-20 h-20 flex items-center justify-center">
-                <img src="/logo.png" alt="Papa Honey Logo" />
+                <img src="/logo.png" alt="Lumera Logo" />
               </div>
                 <span className="font-serif text-lg font-bold text-foreground">Admin Panel</span>
               </div>

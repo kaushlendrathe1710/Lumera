@@ -157,7 +157,7 @@ export default function Products() {
               Our Products
             </h1>
             <p className="text-muted-foreground">
-              Discover our collection of premium honey products
+              Discover our collection of premium perfumes
             </p>
           </div>
 

@@ -1,4 +1,4 @@
-# Papa Honey - E-Commerce Website
+# Lumera - E-Commerce Website
 
 ## Overview
 A complete e-commerce platform for selling premium honey products in the UAE. The website features passwordless email OTP authentication, role-based access control, shopping cart, checkout with Cash on Delivery, order management with invoices, and admin dashboards.

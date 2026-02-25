@@ -1,94 +1,86 @@
 import { db } from "./db";
-import { products, users } from "@shared/schema";
+import { categories, products, users } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import "dotenv/config";
 
-const SUPER_ADMIN_EMAIL = "kaushlendrs.k12@fms.edu";
+const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL!;
+const mandatoryCategory={
+  id:"1",
+  name:"uncategorized",
+  slug:"uncategorized",
+  description:"products without any category",
+}
 
 const sampleProducts: any[] = [
   {
-    name: "Premium Sidr Honey",
-    description: "Sourced from the ancient Sidr trees of Yemen, this premium honey is known for its rich, caramel-like flavor and exceptional health benefits. Perfect for daily use or as a luxurious gift.",
-    price: "350.00",
-    category: "Raw Honey",
+    name: "Midnight Oud",
+    description:
+      "A deep and luxurious fragrance with rich oud, warm amber, and subtle vanilla notes. Perfect for evening wear.",
+    shortDescription: "Luxurious oud with amber warmth.",
+    price: "129.99",
+    comparePrice: "159.99",
+    discountPercent: 18,
+    imageUrl: "https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    images: [
+      "https://images.unsplash.com/photo-1592842414746-a2fd2101381f?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "https://images.unsplash.com/photo-1592842414859-bca1263fabc2?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    ],
+    categoryId: "1",
+    sku: "PO-MO-001",
     stock: 50,
-    weight: "500g",
-    origin: "Yemen",
+    weight: "100ml",
+    origin: "France",
+    isFeatured: true,
     isActive: true,
   },
   {
-    name: "Wild Flower Honey",
-    description: "A delightful blend of nectar from various wild flowers found in the pristine mountains of UAE. Light, floral, and perfect for everyday sweetening.",
-    price: "120.00",
-    category: "Raw Honey",
-    stock: 100,
-    weight: "500g",
-    origin: "UAE",
+    name: "Rose Elixir",
+    description:
+      "A romantic blend of fresh rose petals, peony, and soft musk. Light, elegant, and timeless.",
+    shortDescription: "Fresh rose with soft musk.",
+    price: "89.99",
+    comparePrice: "109.99",
+    discountPercent: 15,
+    imageUrl: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDV8fHxlbnwwfHx8fHw%3D",
+    images: [
+      "https://images.unsplash.com/photo-1631701258001-e0db10d455e1?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDF8fHxlbnwwfHx8fHw%3D",
+      "https://images.unsplash.com/photo-1631701109521-10e0dc55fe8f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDl8fHxlbnwwfHx8fHw%3D"
+    ],
+    categoryId: "1",
+    sku: "PO-RE-002",
+    stock: 75,
+    weight: "75ml",
+    origin: "Italy",
+    isFeatured: false,
     isActive: true,
   },
   {
-    name: "Manuka Honey",
-    description: "Imported from New Zealand, our Manuka honey has a unique taste and remarkable antibacterial properties. Certified with MGO 400+ for maximum potency.",
-    price: "450.00",
-    category: "Premium Honey",
-    stock: 30,
-    weight: "250g",
-    origin: "New Zealand",
-    isActive: true,
-  },
-  {
-    name: "Pure Honeycomb",
-    description: "Experience honey in its most natural form. Our fresh honeycomb is harvested with care, preserving the beeswax and all the natural enzymes and nutrients.",
-    price: "180.00",
-    category: "Honeycomb",
-    stock: 40,
-    weight: "400g",
-    origin: "UAE",
-    isActive: true,
-  },
-  {
-    name: "Acacia Honey",
-    description: "Known for its light color and mild, sweet taste, Acacia honey is perfect for those who prefer a delicate flavor. Great for tea and baking.",
-    price: "95.00",
-    category: "Raw Honey",
-    stock: 80,
-    weight: "500g",
-    origin: "Hungary",
-    isActive: true,
-  },
-  {
-    name: "Royal Jelly Honey Blend",
-    description: "A powerful combination of pure honey enriched with royal jelly. Known for its energy-boosting properties and immune support benefits.",
-    price: "220.00",
-    category: "Specialty Honey",
-    stock: 45,
-    weight: "350g",
-    origin: "UAE",
-    isActive: true,
-  },
-  {
-    name: "Black Seed Honey",
-    description: "Pure honey infused with black seed (Nigella sativa) for added health benefits. A traditional remedy known for centuries in Middle Eastern cultures.",
-    price: "165.00",
-    category: "Specialty Honey",
+    name: "Citrus Noir",
+    description:
+      "A bold fusion of bergamot, lemon zest, and black pepper layered over woody undertones.",
+    shortDescription: "Fresh citrus with a spicy twist.",
+    price: "99.99",
+    comparePrice: "119.99",
+    discountPercent: 17,
+    imageUrl: "https://images.unsplash.com/photo-1613742454955-889ff20becda?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    images: [
+      "https://images.unsplash.com/photo-1733660227163-01bc46e0d7d7?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDd8fHxlbnwwfHx8fHw%3D",
+    ],
+    categoryId: "1",
+    sku: "PO-CN-003",
     stock: 60,
-    weight: "500g",
-    origin: "UAE",
-    isActive: true,
-  },
-  {
-    name: "Organic Forest Honey",
-    description: "Collected from bees foraging in organic certified forests. Dark, rich, and full of antioxidants. Perfect for health-conscious honey lovers.",
-    price: "140.00",
-    category: "Organic Honey",
-    stock: 55,
-    weight: "500g",
-    origin: "Turkey",
+    weight: "100ml",
+    origin: "Spain",
+    isFeatured: true,
     isActive: true,
   },
 ];
-
 export async function seedDatabase() {
   try {
+    const category = await db.select().from(categories).where(eq(categories.id,"1"));
+    if(!category.length){
+      await db.insert(categories).values(mandatoryCategory);
+    }
     const existingProducts = await db.select().from(products).limit(1);
 
     if (existingProducts.length === 0) {
