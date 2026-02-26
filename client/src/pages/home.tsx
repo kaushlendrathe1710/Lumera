@@ -117,7 +117,7 @@ export default function Home() {
               ))
             ) : featuredProducts.length > 0 ? (
               featuredProducts.map((product) => (
-                <Card key={product.id} className="overflow-hidden group hover-elevate" data-testid={`card-product-${product.id}`}>
+                <Card key={product.id} className="overflow-hidden bg-gray-200 group hover-elevate" data-testid={`card-product-${product.id}`}>
                   <Link href={`/products/${product.id}`}>
                     <div className="aspect-square overflow-hidden bg-muted">
                       {product.imageUrl ? (
@@ -135,11 +135,11 @@ export default function Home() {
                   </Link>
                   <CardContent className="p-4">
                     <Link href={`/products/${product.id}`}>
-                      <h3 className="font-semibold text-foreground mb-1 hover:text-primary transition-colors">
+                      <h3 className="font-semibold text-gray-800 mb-1 transition-colors">
                         {product.name}
                       </h3>
                     </Link>
-                    <p className="text-sm text-muted-foreground mb-1">{product.category?.name || "Uncategorized"}</p>
+                    <p className="text-sm text-gray-600 mb-1">{product.category?.name || "Uncategorized"}</p>
                     {ratingsMap.get(product.id) && (
                       <div className="flex items-center gap-1 mb-1">
                         <div className="flex items-center gap-0.5">
@@ -167,7 +167,7 @@ export default function Home() {
                             <span className="text-lg font-bold text-primary">
                               {(parseFloat(product.price) * (1 - product.discountPercent / 100)).toFixed(2)} AED
                             </span>
-                            <span className="text-sm text-muted-foreground line-through ml-2">
+                            <span className="text-sm text-gray-600 line-through ml-2">
                               {parseFloat(product.price).toFixed(2)} AED
                             </span>
                           </>
