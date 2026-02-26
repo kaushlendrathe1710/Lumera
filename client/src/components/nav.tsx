@@ -39,10 +39,10 @@ export function Nav() {
           <div className="flex items-center gap-4">
             <Link href="/">
               <div className="flex items-center gap-2 cursor-pointer">
-                {/* <div className="w-20 h-20 flex items-center justify-center">
-                  <img src="/logo.png" alt="Lumera Logo" />
-                </div> */}
-                <span className="font-serif text-xl font-bold">Lumera</span>
+                <div className="w-20 h-20 flex items-center justify-center">
+                  <img src="/logo.png" className="mix-blend-difference" alt="Lumera Logo" />
+                </div>
+                {/* <span className="font-serif text-xl font-bold">Lumera</span> */}
               </div>
             </Link>
             {/* Desktop search */}

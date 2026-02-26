@@ -24,6 +24,7 @@ import Contact from "@/pages/contact";
 import Shipping from "@/pages/shipping";
 import Faq from "@/pages/faq";
 import Returns from "@/pages/returns";
+import Privacy from "@/pages/privacy";
 import NotFound from "@/pages/not-found";
 
 import CustomerDashboard from "@/pages/dashboard/index";
@@ -42,6 +43,7 @@ import AdminOrders from "@/pages/admin/orders";
 import AdminOrderDetail from "@/pages/admin/order-detail";
 import AdminUsers from "@/pages/admin/users";
 import AdminProfile from "@/pages/admin/profile";
+import AdminContactDetails from "@/pages/admin/contact-details";
 
 function Router() {
   return (
@@ -52,6 +54,7 @@ function Router() {
       <Route path="/contact" component={Contact} />
       <Route path="/shipping" component={Shipping} />
       <Route path="/faq" component={Faq} />
+      <Route path="/privacy" component={Privacy} />
       <Route path="/returns" component={Returns} />
       <Route path="/products/:id" component={ProductDetail} />
       <Route path="/cart" component={Cart} />
@@ -145,6 +148,12 @@ function Router() {
       <Route path="/admin/products">
         <AdminRoute>
           <AdminProducts />
+        </AdminRoute>
+      </Route>
+
+      <Route path="/admin/contact-details">
+        <AdminRoute>
+          <AdminContactDetails />
         </AdminRoute>
       </Route>
 

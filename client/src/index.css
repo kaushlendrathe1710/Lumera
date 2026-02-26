@@ -11,6 +11,7 @@
   --elevate-2: rgba(0,0,0, .08);
   --background: 0 0% 100%;
   --foreground: 30 8% 12%;
+  --royal: rgba(58, 16, 20, 1);
   --border: 30 6% 88%;
   --card: 0 0% 98%;
   --card-foreground: 30 8% 12%;
@@ -95,6 +96,7 @@
   --elevate-2: rgba(255,255,255, .09);
   --background: 30 4% 8%;
   --foreground: 35 8% 92%;
+  --royal: rgba(58, 16, 20, 1);
   --border: 30 4% 18%;
   --card: 30 4% 10%;
   --card-foreground: 35 8% 92%;
@@ -285,4 +287,8 @@
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
     inset: -1px;
   }
+
+  /* Custom project utility colors */
+  .bg-royal { background-color: var(--royal); }
+  .text-royal { color: var(--royal); }
 }

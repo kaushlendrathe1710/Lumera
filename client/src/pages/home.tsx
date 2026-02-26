@@ -65,8 +65,8 @@ export default function Home() {
               Signature Fragrances
             </Badge>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white mb-6 leading-tight">
-              Lumera — <br />
-              <span className="text-primary">Artisanal. Elegant. Timeless.</span>
+              Lumera - <br />
+              <span className="text-primary">your moment, your signature!</span>
             </h1>
             <p className="text-lg md:text-xl text-gray-200 mb-8 leading-relaxed">
               Lumera crafts exquisite perfumes inspired by timeless fragrances. Our blends are
@@ -87,14 +87,14 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="featured-products" className="py-16 md:py-24">
+      <section id="featured-products" className="py-16 md:py-24 bg-royal">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-10">
             <div>
-              <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-2">
+              <h2 className="text-3xl md:text-4xl font-serif font-bold text-gray-50 mb-2">
                   Featured Products
                 </h2>
-                <p className="text-muted-foreground">Our most popular perfume selections</p>
+                <p className="text-gray-200">Our most popular perfume selections</p>
             </div>
             <Link href="/products">
               <Button variant="ghost" className="gap-2" data-testid="link-view-all">
@@ -289,7 +289,7 @@ export default function Home() {
     </div>
     {showScrollTop && (
       <button
-        className="fixed bottom-6 right-6 z-[9999] h-10 w-10 flex items-center justify-center rounded-full bg-amber-600 text-white shadow-lg hover:bg-amber-700 transition-colors"
+        className="fixed bottom-6 right-6 z-[9999] h-10 w-10 flex items-center justify-center rounded-full bg-primary text-white shadow-lg hover:bg-primary/90 transition-colors"
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         data-testid="button-scroll-top"
         aria-label="Scroll to top"

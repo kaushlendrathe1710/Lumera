@@ -29,10 +29,10 @@ export default function ReturnsPage() {
         <div className="bg-primary text-primary-foreground p-8 md:p-12 lg:p-16 rounded-2xl shadow-xl mb-8">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-              Returns & Cancellations
+              Returns & Refunds
             </h1>
             <p className="text-lg md:text-xl lg:text-2xl opacity-90">
-              Learn about our return, refund, and cancellation policies for Lumera products
+              Learn about our return, refund, policies for Lumera products
             </p>
           </div>
         </div>
@@ -42,159 +42,28 @@ export default function ReturnsPage() {
           {/* Intro */}
           <div className="mb-8 text-muted-foreground">
             <p className="text-base md:text-lg leading-relaxed">
-              At Lumera, we want you to be completely satisfied with your purchase of our fragrances.
-              If you're not happy with your order for any reason, we offer easy returns, refunds, and
-              cancellations as part of our customer satisfaction commitment.
+              All sales made through Luméra are final. No refunds will be issued.
             </p>
           </div>
 
           {/* Policy Details */}
           <div className="mb-12">
             <h2 className="text-2xl md:text-3xl font-bold mb-6 text-primary">
-              Return & Cancellation Policy
+              Return & Refund Policy
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               <Card className="border-2">
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-4 flex items-center gap-2 text-lg">
                     <RefreshCw size={20} className="text-primary" />
-                    Return Policy
+                    Return & Refund Policy
                   </h3>
-                  <ul className="space-y-3 text-sm">
-                    <li className="flex items-start gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                      <span>Unopened perfume bottles can be returned within 7 days of delivery</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                      <span>Bottles must be sealed with original tamper-proof seal intact</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                      <span>Product must be in original packaging with all labels</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <AlertCircle className="h-4 w-4 text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" />
-                      <span>Opened perfume bottles cannot be returned for hygiene reasons</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                      <span>Damaged/defective products: Full refund or replacement within 7 days</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-4 flex items-center gap-2 text-lg">
-                    <Clock size={20} className="text-primary" />
-                    Cancellation Policy
-                  </h3>
-                  <ul className="space-y-3 text-sm">
-                    <li className="flex items-start gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                      <span>Orders can be cancelled within 2 hours of placement</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                      <span>Instant refund to original payment method for prepaid orders</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                      <span>No cancellation charges before packaging begins</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <AlertCircle className="h-4 w-4 text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" />
-                      <span>Orders cannot be cancelled after packaging/shipping</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                      <span>For bulk orders, contact customer service for cancellations</span>
-                    </li>
-                  </ul>
+                  <p className="text-sm">
+                    All sales made through Luméra are final. No returns or refunds will be issued.
+                  </p>
                 </CardContent>
               </Card>
             </div>
-          </div>
-
-          {/* Process Steps */}
-          <div className="mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold mb-6 text-primary">
-              How to Return or Cancel Your Order
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-xl font-bold text-primary">1</span>
-                </div>
-                <h4 className="font-semibold mb-2">Initiate Request</h4>
-                <p className="text-sm text-muted-foreground">
-                  Go to "My Orders" and select the item to return or cancel
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-xl font-bold text-primary">2</span>
-                </div>
-                <h4 className="font-semibold mb-2">Choose Reason</h4>
-                <p className="text-sm text-muted-foreground">
-                  Select the reason for return or cancellation
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-xl font-bold text-primary">3</span>
-                </div>
-                <h4 className="font-semibold mb-2">Pickup/Verification</h4>
-                <p className="text-sm text-muted-foreground">
-                  Wait for pickup or drop at nearest center (returns only)
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-xl font-bold text-primary">4</span>
-                </div>
-                <h4 className="font-semibold mb-2">Refund</h4>
-                <p className="text-sm text-muted-foreground">
-                  Get refund after verification (5-7 business days)
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Refund Timeline */}
-          <div className="mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold mb-6 text-primary">
-              Refund Timeline
-            </h2>
-            <Card className="border-2">
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <Clock className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-semibold mb-1">UPI / Net Banking</h4>
-                      <p className="text-sm text-muted-foreground">3-5 business days after return approval</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Clock className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-semibold mb-1">Credit / Debit Card</h4>
-                      <p className="text-sm text-muted-foreground">5-7 business days after return approval</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Clock className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-semibold mb-1">Cash on Delivery</h4>
-                      <p className="text-sm text-muted-foreground">7-10 business days (refunded to bank account)</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
           {/* FAQs */}
@@ -225,9 +94,9 @@ export default function ReturnsPage() {
                       Can I return a perfume if I've opened the bottle?
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    No, opened perfume bottles cannot be returned for hygiene reasons.
-                    However, if you received a damaged or defective product, contact us
-                    within 48 hours with photos and we'll arrange a replacement or refund.
+                    No. All sales are final and returns are not accepted. If you received a
+                    damaged or defective product, contact us within 48 hours with photos and
+                    we'll review the issue.
                   </p>
                 </CardContent>
               </Card>
@@ -254,10 +123,7 @@ export default function ReturnsPage() {
                     How long does it take to get my refund?
                   </h3>
                     <p className="text-sm text-muted-foreground">
-                    Refunds are processed within 5-7 business days after the returned
-                    item is received and verified at our facility. The timeline depends
-                    on your payment method: UPI/Net Banking (3-5 days), Cards (5-7 days),
-                    COD (7-10 days to bank account).
+                    Refunds are not provided. All sales made through Luméra are final.
                   </p>
                 </CardContent>
               </Card>

@@ -42,6 +42,7 @@ import {
   Globe,
   Heart,
   MapPin,
+  Mail,
 } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -79,10 +80,10 @@ export function CustomerDashboardLayout({ children, title }: DashboardLayoutProp
           <SidebarHeader className="p-4">
             <Link href="/">
               <div className="flex items-center gap-2 cursor-pointer">
-                {/* <div className="w-20 h-20 flex items-center justify-center">
-                <img src="/logo.png" alt="Lumera Logo" />
-              </div> */}
-                <span className="font-serif text-lg font-bold text-foreground">Lumera</span>
+                <div className="w-20 h-20 flex items-center justify-center">
+                <img src="/logo.png" className="mix-blend-difference" alt="Lumera Logo" />
+              </div>
+                {/* <span className="font-serif text-lg font-bold text-foreground">Lumera</span> */}
               </div>
             </Link>
           </SidebarHeader>
@@ -217,6 +218,7 @@ export function AdminDashboardLayout({ children, title }: DashboardLayoutProps) 
     { title: "Products", url: "/admin/products", icon: Package },
     { title: "Orders", url: "/admin/orders", icon: ShoppingBag },
     { title: "Users", url: "/admin/users", icon: Users },
+    { title: "Contact Details", url: "/admin/contact-details", icon: Mail },
   ];
 
   const handleLogout = async () => {
@@ -237,8 +239,8 @@ export function AdminDashboardLayout({ children, title }: DashboardLayoutProps) 
             <Link href="/">
               <div className="flex items-center gap-2 cursor-pointer">
                 <div className="w-20 h-20 flex items-center justify-center">
-                {/* <img src="/logo.png" alt="Lumera Logo" /> */}
-              <span className="font-serif text-xl font-bold">Lumera</span>
+                <img src="/logo.png" className="mix-blend-difference" alt="Lumera Logo" />
+              {/* <span className="font-serif text-xl font-bold">Lumera</span> */}
               </div>
                 <span className="font-serif text-lg font-bold text-foreground">Admin Panel</span>
               </div>
