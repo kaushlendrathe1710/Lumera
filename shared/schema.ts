@@ -8,6 +8,16 @@ export const orderStatusEnum = pgEnum("order_status", ["pending", "processing", 
 export const paymentStatusEnum = pgEnum("payment_status", ["pending", "paid", "failed", "refunded"]);
 export const paymentMethodEnum = pgEnum("payment_method", ["cod", "stripe"]);
 
+export const contactPlatformEnum = pgEnum("contact_platform", ["instagram", "phone", "tiktok", "email"]);
+
+export const contactDetails = pgTable("contact_details", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  platform: contactPlatformEnum("platform").notNull(),
+  link: text("link").notNull(),
+  displayText: text("display_text").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const supportedCountries = pgTable("supported_countries", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
@@ -335,6 +345,48 @@ export type WishlistItem = typeof wishlistItems.$inferSelect;
 export type InsertWishlistItem = z.infer<typeof insertWishlistItemSchema>;
 export type Address = typeof addresses.$inferSelect;
 export type InsertAddress = z.infer<typeof insertAddressSchema>;
+
+export const insertContactDetailSchema = createInsertSchema(contactDetails).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  platform: z.enum(["instagram", "phone", "tiktok", "email"]),
+  link: z.string().min(1),
+  displayText: z.string().min(1),
+}).superRefine((data, ctx) => {
+  const link = (data as any).link as string;
+  const platform = (data as any).platform as string;
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRegex = /^\+?\d{7,15}$/;
+  const instaRegex = /^https?:\/\/(www\.)?instagram\.com\/[A-Za-z0-9._-]+\/?/i;
+  const tiktokRegex = /^https?:\/\/([a-z0-9]+\.)?tiktok\.com\//i;
+
+  if (platform === "email") {
+    // allow plain email or mailto:email
+    const asMailTo = link.startsWith("mailto:") ? link.slice(7) : link;
+    if (!emailRegex.test(asMailTo)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid email or mailto link" });
+    }
+  } else if (platform === "phone") {
+    // allow tel:+123.. or +123.. or digits
+    const asTel = link.startsWith("tel:") ? link.slice(4) : link;
+    if (!phoneRegex.test(asTel)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid phone link or number" });
+    }
+  } else if (platform === "instagram") {
+    if (!instaRegex.test(link)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Instagram link must be a valid Instagram URL" });
+    }
+  } else if (platform === "tiktok") {
+    if (!tiktokRegex.test(link)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "TikTok link must be a valid TikTok URL" });
+    }
+  }
+});
+
+export type ContactDetail = typeof contactDetails.$inferSelect;
+export type InsertContactDetail = z.infer<typeof insertContactDetailSchema>;
 
 export type CartItemWithProduct = CartItem & { product: Product & { category: Category | null } };
 export type OrderWithItems = Order & { orderItems: (OrderItem & { product?: Product })[] };

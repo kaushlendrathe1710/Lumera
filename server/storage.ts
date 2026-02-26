@@ -1,5 +1,6 @@
 import {
   users, products, cartItems, orders, orderItems, otpTokens, reviews, categories, supportedCountries, wishlistItems, addresses,
+  contactDetails,
   type User, type InsertUser, type Product, type InsertProduct,
   type CartItem, type InsertCartItem, type Order, type InsertOrder,
   type OrderItem, type InsertOrderItem, type OtpToken, type InsertOtpToken,
@@ -9,6 +10,7 @@ import {
   type Address, type InsertAddress,
   type OrderStatus, type PaymentStatus, type PaymentMethod
 } from "@shared/schema";
+import type { ContactDetail, InsertContactDetail } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, ne, desc, gt, avg, count, like, sql, ilike } from "drizzle-orm";
 
@@ -109,6 +111,13 @@ export interface IStorage {
   updateAddress(id: string, data: Partial<InsertAddress>): Promise<Address | undefined>;
   deleteAddress(id: string, userId: string): Promise<void>;
   setDefaultAddress(addressId: string, userId: string): Promise<void>;
+
+  // Contact details methods
+  getAllContactDetails(): Promise<ContactDetail[]>;
+  getContactDetail(id: string): Promise<ContactDetail | undefined>;
+  createContactDetail(detail: InsertContactDetail): Promise<ContactDetail>;
+  updateContactDetail(id: string, data: Partial<InsertContactDetail>): Promise<ContactDetail | undefined>;
+  deleteContactDetail(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -818,6 +827,30 @@ export class DatabaseStorage implements IStorage {
         .set({ isDefault: true, updatedAt: new Date() })
         .where(and(eq(addresses.id, addressId), eq(addresses.userId, userId)));
     });
+  }
+
+  // Contact details implementations
+  async getAllContactDetails(): Promise<ContactDetail[]> {
+    return db.select().from(contactDetails).orderBy(contactDetails.createdAt);
+  }
+
+  async getContactDetail(id: string): Promise<ContactDetail | undefined> {
+    const [row] = await db.select().from(contactDetails).where(eq(contactDetails.id, id));
+    return row || undefined;
+  }
+
+  async createContactDetail(detail: InsertContactDetail): Promise<ContactDetail> {
+    const [row] = await db.insert(contactDetails).values(detail).returning();
+    return row;
+  }
+
+  async updateContactDetail(id: string, data: Partial<InsertContactDetail>): Promise<ContactDetail | undefined> {
+    const [row] = await db.update(contactDetails).set(data).where(eq(contactDetails.id, id)).returning();
+    return row || undefined;
+  }
+
+  async deleteContactDetail(id: string): Promise<void> {
+    await db.delete(contactDetails).where(eq(contactDetails.id, id));
   }
 }
 

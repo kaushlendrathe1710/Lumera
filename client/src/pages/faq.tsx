@@ -24,7 +24,7 @@ import { useEffect } from "react";
 
 export default function FaqPage() {
   const [searchQuery, setSearchQuery] = React.useState("");
-  
+
   useEffect(() => {
     // scroll to top on mount
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -79,7 +79,7 @@ export default function FaqPage() {
           {/* FAQ Categories */}
           <Tabs defaultValue="orders" className="w-full mb-10">
             <div className="overflow-x-auto">
-              <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 min-w-max rounded-xl">
+              <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 min-w-max rounded-xl">
                 <TabsTrigger
                   value="orders"
                   className="flex items-center gap-2 text-sm rounded-lg"
@@ -93,13 +93,6 @@ export default function FaqPage() {
                 >
                   <Droplet size={16} />
                   <span>Product</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="payments"
-                  className="flex items-center gap-2 text-sm rounded-lg"
-                >
-                  <CreditCard size={16} />
-                  <span>Payments</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="returns"
@@ -136,20 +129,8 @@ export default function FaqPage() {
                   {(() => {
                     const items = [
                       {
-                        question: "How do I track my order?",
-                        answer: `You can track your order by logging into your Lumera account and going to 'My Orders'. Click on the order you want to track to see real-time updates on its status and expected delivery date. You'll also receive SMS and email notifications at each stage of delivery.`,
-                      },
-                      {
-                        question: "When will I receive my order?",
-                        answer: `Delivery times vary by location. The estimated delivery date is shown at checkout and in your order confirmation email. All products are carefully packaged before dispatch to ensure safe delivery.`,
-                      },
-                      {
                         question: "Do you deliver across the UAE?",
                         answer: `Yes! We deliver Lumera fragrances across the United Arab Emirates. The estimated delivery date is shown at checkout and in your order confirmation email.`,
-                      },
-                      {
-                        question: "Can I modify or cancel my order?",
-                        answer: `You can modify or cancel your order within 2 hours of placing it by going to 'My Orders' and clicking 'Cancel Order'. After packaging begins, cancellation is not possible. In that case, you can refuse delivery or request a return once you receive the product. For bulk orders, please contact our customer service team.`,
                       },
                       {
                         question: "Is delivery free?",
@@ -244,14 +225,6 @@ export default function FaqPage() {
                         <p>Yes. We include common allergen declarations on product pages when relevant. If you have specific concerns, review ingredient lists or contact support for details.</p>
                       </AccordionContent>
                     </AccordionItem>
-                    <AccordionItem value="item-6">
-                      <AccordionTrigger className="text-left hover:text-amber-600">
-                        Do you offer samples?
-                      </AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground whitespace-pre-line">
-                        <p>We occasionally offer sample sets and discovery sprays. Check product pages or contact customer service for current offerings.</p>
-                      </AccordionContent>
-                    </AccordionItem>
                   </Accordion>
                 </CardContent>
               </Card>
@@ -271,32 +244,7 @@ export default function FaqPage() {
                         What is your return policy?
                       </AccordionTrigger>
                       <AccordionContent className="text-muted-foreground whitespace-pre-line">
-                        <p>We want you to be completely satisfied with your purchase. Our return policy:</p>
-                        <ul className="list-disc pl-5 space-y-2 mt-3">
-                          <li><strong>Damaged/Defective Products:</strong> 7 days from delivery for replacement or full refund</li>
-                          <li><strong>Quality Issues:</strong> If you're not satisfied with the product quality, contact us within 7 days</li>
-                          <li><strong>Wrong Item Delivered:</strong> Immediate replacement or refund</li>
-                          <li><strong>Unopened Products:</strong> 7 days return window for unopened bottles</li>
-                        </ul>
-                        <p className="mt-3">Note: Opened perfume bottles cannot be returned unless there's a quality issue. This is for hygiene reasons.</p>
-                      </AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem value="item-2">
-                      <AccordionTrigger className="text-left hover:text-amber-600">
-                        How do I initiate a return?
-                      </AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground whitespace-pre-line">
-                        <p>To return a product:</p>
-                        <ol className="list-decimal pl-5 space-y-1 mt-3">
-                          <li>Log in to your Lumera account</li>
-                          <li>Go to "My Orders"</li>
-                          <li>Select the order you want to return</li>
-                          <li>Click "Return/Replace" button</li>
-                          <li>Select the reason for return (with photos if damaged)</li>
-                          <li>Choose refund or replacement</li>
-                          <li>Schedule a pickup or drop-off</li>
-                        </ol>
-                        <p className="mt-3">Our team will review your request within 24 hours and arrange pickup if approved.</p>
+                        <p>All sales made through Luméra are final. No returns or refunds will be issued.</p>
                       </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="item-3">
@@ -304,44 +252,7 @@ export default function FaqPage() {
                         When will I receive my refund?
                       </AccordionTrigger>
                       <AccordionContent className="text-muted-foreground whitespace-pre-line">
-                        <p>Refund processing times vary by payment method:</p>
-                        <ul className="list-disc pl-5 space-y-1 mt-3">
-                          <li>UPI/Bank Transfer: 3-5 business days</li>
-                          <li>Credit/Debit Card: 5-7 business days</li>
-                          <li>Digital Wallets: 2-3 business days</li>
-                          <li>Cash on Delivery: 7-10 business days to bank account</li>
-                        </ul>
-                        <p className="mt-3">Refunds are processed after we receive and inspect the returned product. You'll receive email confirmation at each stage.</p>
-                      </AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem value="item-4">
-                      <AccordionTrigger className="text-left hover:text-amber-600">
-                        What if my product arrived damaged?
-                      </AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground whitespace-pre-line">
-                        <p>If your product arrives broken or damaged:</p>
-                        <ol className="list-decimal pl-5 space-y-1 mt-3">
-                          <li>Do NOT accept the delivery if visible damage is present</li>
-                          <li>Take photos of the damaged package immediately</li>
-                          <li>Contact us within 48 hours at kaushlendra.k12@fms.edu or +91 9650503696</li>
-                          <li>Share photos of the damage</li>
-                          <li>We'll send a replacement immediately at no cost</li>
-                        </ol>
-                        <p className="mt-3">Damaged deliveries are replaced with priority shipping. No questions asked, no return required for damaged items.</p>
-                      </AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem value="item-5">
-                      <AccordionTrigger className="text-left hover:text-amber-600">
-                        Can I exchange my honey for a different variant?
-                      </AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground whitespace-pre-line">
-                        <p>While we don't offer direct exchanges, you can:</p>
-                        <ol className="list-decimal pl-5 space-y-1 mt-3">
-                          <li>Return the current product (unopened)</li>
-                          <li>Receive a full refund</li>
-                          <li>Place a new order for your preferred variant</li>
-                        </ol>
-                        <p className="mt-3">For bulk orders or special cases, contact our customer service team who may arrange direct exchanges. Call +91 9650503696 or email kaushlendra.k12@fms.edu.</p>
+                        <p>Refunds are not provided. All sales made through Luméra are final.</p>
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>

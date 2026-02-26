@@ -15,6 +15,7 @@ import {
   type OrderStatus,
   type PaymentStatus,
   type PaymentMethod,
+  insertContactDetailSchema,
 } from "@shared/schema";
 import { z } from "zod";
 import { registerS3Routes } from "./s3-routes";
@@ -317,6 +318,71 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Get category error:", error);
       res.status(500).json({ error: "Failed to fetch category" });
+    }
+  });
+
+  // Contact details - public
+  app.get("/api/contact-details", async (req, res) => {
+    try {
+      const items = await storage.getAllContactDetails();
+      res.json(items);
+    } catch (error) {
+      console.error("Get contact details error:", error);
+      res.status(500).json({ error: "Failed to fetch contact details" });
+    }
+  });
+
+  app.get("/api/contact-details/:id", async (req, res) => {
+    try {
+      const id = req.params.id as string;
+      const item = await storage.getContactDetail(id);
+      if (!item) return res.status(404).json({ error: "Not found" });
+      res.json(item);
+    } catch (error) {
+      console.error("Get contact detail error:", error);
+      res.status(500).json({ error: "Failed to fetch contact detail" });
+    }
+  });
+
+  // Admin CRUD
+  app.post("/api/admin/contact-details", requireAdmin, async (req, res) => {
+    try {
+      const data = insertContactDetailSchema.parse(req.body);
+      const created = await storage.createContactDetail(data);
+      res.json(created);
+    } catch (error) {
+      console.error("Create contact detail error:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors[0].message });
+      }
+      res.status(500).json({ error: "Failed to create contact detail" });
+    }
+  });
+
+  app.put("/api/admin/contact-details/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = req.params.id as string;
+      const data = insertContactDetailSchema.partial().parse(req.body);
+      const updated = await storage.updateContactDetail(id, data);
+      if (!updated) return res.status(404).json({ error: "Not found" });
+      res.json(updated);
+    } catch (error) {
+      console.error("Update contact detail error:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors[0].message });
+      }
+      res.status(500).json({ error: "Failed to update contact detail" });
+    }
+  });
+
+  app.delete("/api/admin/contact-details/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = req.params.id as string;
+      await storage.deleteContactDetail(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete contact detail error:", error);
+      res.status(500).json({ error: "Failed to delete contact detail" });
     }
   });
 
