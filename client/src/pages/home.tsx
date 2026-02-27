@@ -49,18 +49,18 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       <Nav />
 
-      <section className="relative overflow-hidden">
+      <section className="relative w-full h-[80vh] overflow-hidden">
         <div className="absolute inset-0">
             <img
             src={heroImage}
             alt="Signature perfume collection"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
+          <div className="absolute inset-0" />
         </div>
 
         <div className="relative container mx-auto px-4 py-24 md:py-32 lg:py-40">
-          <div className="max-w-2xl">
+          {/* <div className="max-w-2xl">
             <Badge className="mb-4 bg-primary/90 text-primary-foreground">
               Signature Fragrances
             </Badge>
@@ -83,7 +83,12 @@ export default function Home() {
                 Learn More
               </Button>
             </div>
-          </div>
+          </div> */}
+            {/* <div className="flex flex-col items-center justify-center gap-2 text-white w-full h-full text-center">
+
+            <p>Perfume is not scent...</p>
+            <p>Rather, it is the impact you leave after you leave.</p>
+          </div> */}
         </div>
       </section>
 
