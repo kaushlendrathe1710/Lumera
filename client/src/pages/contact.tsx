@@ -7,7 +7,6 @@ import type { ContactDetail } from "@shared/schema";
 
 export default function Contact() {
   useEffect(() => {
-    // scroll to top on mount
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
   const { data: contacts } = useQuery<ContactDetail[]>({ queryKey: ["/api/contact-details"], queryFn: () => fetch("/api/contact-details").then((r) => r.json()) });
@@ -29,7 +28,7 @@ export default function Contact() {
                   <MapPin className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="font-semibold text-foreground">Location</h3>
-                <p className="text-muted-foreground">Punjab, India</p>
+                <p className="text-muted-foreground">Dubai, Al-khawaneej</p>
               </CardContent>
             </Card>
 
@@ -39,36 +38,16 @@ export default function Contact() {
                 return (
                   <Card key={c.id} className="border-2 hover:border-primary transition-colors">
                     <CardContent className="p-6 text-center space-y-3">
-                      <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                      <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-5">
                         <Icon className="h-6 w-6 text-primary" />
                       </div>
-                      <h3 className="font-semibold text-foreground">{c.displayText}</h3>
-                      <a href={c.link} className="text-primary hover:underline break-all">{c.link}</a>
+                      <a href={c.link} className="text-primary hover:underline break-all">{c.displayText}</a>
                     </CardContent>
                   </Card>
                 );
               })
             ) : (
               <>
-                <Card className="border-2 hover:border-primary transition-colors">
-                  <CardContent className="p-6 text-center space-y-3">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                      <Mail className="h-6 w-6 text-primary" />
-                    </div>
-                    <h3 className="font-semibold text-foreground">Email</h3>
-                    <a href="mailto:kaushlendra.k12@fms.edu" className="text-primary hover:underline break-all">kaushlendra.k12@fms.edu</a>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-2 hover:border-primary transition-colors">
-                  <CardContent className="p-6 text-center space-y-3">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                      <Phone className="h-6 w-6 text-primary" />
-                    </div>
-                    <h3 className="font-semibold text-foreground">Phone</h3>
-                    <a href="tel:+919650503696" className="text-primary hover:underline">+91 9650503696</a>
-                  </CardContent>
-                </Card>
               </>
             )}
           </div>

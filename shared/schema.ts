@@ -346,16 +346,24 @@ export type InsertWishlistItem = z.infer<typeof insertWishlistItemSchema>;
 export type Address = typeof addresses.$inferSelect;
 export type InsertAddress = z.infer<typeof insertAddressSchema>;
 
-export const insertContactDetailSchema = createInsertSchema(contactDetails).omit({
-  id: true,
-  createdAt: true,
-}).extend({
-  platform: z.enum(["instagram", "phone", "tiktok", "email"]),
-  link: z.string().min(1),
-  displayText: z.string().min(1),
-}).superRefine((data, ctx) => {
-  const link = (data as any).link as string;
+const _contactDetailBase = createInsertSchema(contactDetails)
+  .omit({ id: true, createdAt: true })
+  .extend({
+    platform: z.enum(["instagram", "phone", "tiktok", "email"]),
+    link: z.string().min(1),
+    displayText: z.string().min(1),
+  });
+
+export const insertContactDetailSchema = _contactDetailBase.superRefine((data, ctx) => {
+  const linkVal = (data as any).link;
   const platform = (data as any).platform as string;
+
+  // If platform is provided but link is missing or not a string, report a clear issue.
+  if (platform && (linkVal === undefined || typeof linkVal !== "string")) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Link is required when platform is provided" });
+    return;
+  }
+  const link = typeof linkVal === "string" ? linkVal : "";
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneRegex = /^\+?\d{7,15}$/;
@@ -384,6 +392,8 @@ export const insertContactDetailSchema = createInsertSchema(contactDetails).omit
     }
   }
 });
+
+export const updateContactDetailSchema = _contactDetailBase.partial();
 
 export type ContactDetail = typeof contactDetails.$inferSelect;
 export type InsertContactDetail = z.infer<typeof insertContactDetailSchema>;

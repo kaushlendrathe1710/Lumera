@@ -2,7 +2,7 @@ import { Link, useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { ShoppingCart, Heart, Search, Menu } from "lucide-react";
+import { ShoppingCart, Heart, Search, Menu, User, LogIn } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
@@ -36,51 +36,65 @@ export function Nav() {
       {/* Middle: logo + search + actions */}
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
-          <div className="flex items-center gap-4">
-            <Link href="/">
-              <div className="flex items-center gap-2 cursor-pointer">
-                <div className="w-20 h-20 flex items-center justify-center">
-                  <img src="/logo.png" className="mix-blend-difference" alt="Lumera Logo" />
-                </div>
-                {/* <span className="font-serif text-xl font-bold">Lumera</span> */}
+          {/* Mobile menu toggle */}
+        <button
+          className="md:hidden p-2"
+          onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label="Toggle menu"
+        >
+            <Menu className="h-6 w-6" />
+          </button>
+
+
+
+          {/* Desktop search */}
+          <div className="hidden md:block">
+            <form
+              className="flex items-center bg-card rounded-md shadow-sm overflow-hidden"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const q = searchQuery.trim();
+                if (q) navigate(`/products?q=${encodeURIComponent(q)}`);
+                else navigate(`/products`);
+              }}
+            >
+              <div className="px-1 text-muted-foreground">
+                <Search className="h-4 w-4" />
               </div>
-            </Link>
-            {/* Desktop search */}
-            <div className="hidden lg:block">
-              <form
-                className="flex items-center bg-card rounded-md shadow-sm overflow-hidden"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const q = searchQuery.trim();
-                  if (q) navigate(`/products?q=${encodeURIComponent(q)}`);
-                  else navigate(`/products`);
+              <input
+                value={searchQuery}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setSearchQuery(v);
+                  // Debounce: navigate after 400ms of inactivity
+                  if (debounceRef.current) clearTimeout(debounceRef.current);
+                  debounceRef.current = setTimeout(() => {
+                    const q = v.trim();
+                    if (q) navigate(`/products?q=${encodeURIComponent(q)}`);
+                    else navigate(`/products`);
+                  }, 400);
                 }}
-              >
-                <div className="px-3 text-muted-foreground">
-                  <Search className="h-4 w-4" />
-                </div>
-                <input
-                  value={searchQuery}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setSearchQuery(v);
-                    // Debounce: navigate after 400ms of inactivity
-                    if (debounceRef.current) clearTimeout(debounceRef.current);
-                    debounceRef.current = setTimeout(() => {
-                      const q = v.trim();
-                      if (q) navigate(`/products?q=${encodeURIComponent(q)}`);
-                      else navigate(`/products`);
-                    }, 400);
-                  }}
-                  placeholder="Search perfumes, brands, notes or SKU"
-                  className="px-3 py-2 outline-none bg-transparent w-96 text-sm"
-                />
-                <Button type="submit" className="rounded-r-md">
-                  Search
-                </Button>
-              </form>
-            </div>
+                placeholder="Search perfumes"
+                className="px-1 py-2 outline-none bg-transparent w-auto text-sm"
+              />
+              <Button type="submit" className="rounded-r-md px-1 py-1">
+                Search
+              </Button>
+            </form>
           </div>
+
+          <Link href="/">
+            <div className="flex items-center gap-2 cursor-pointer">
+              <div className="w-20 h-20 flex items-center justify-center">
+                <img
+                  src="/logo.png"
+                  className="mix-blend-difference"
+                  alt="Lumera Logo"
+                />
+              </div>
+              {/* <span className="font-serif text-xl font-bold">Lumera</span> */}
+            </div>
+          </Link>
 
           <div className="flex items-center gap-3">
             <ThemeToggle />
@@ -105,6 +119,8 @@ export function Nav() {
                 )}
               </Button>
             </Link>
+            {/* <div className="hidden md:block">
+
             {isAuthenticated ? (
               <Link href={user?.role === "customer" ? "/dashboard" : "/admin"}>
                 <Button variant="outline" className="inline">
@@ -116,21 +132,14 @@ export function Nav() {
                 <Button className="inline">Sign in</Button>
               </Link>
             )}
+            </div> */}
 
-            {/* Mobile menu toggle */}
-            <button
-              className="lg:hidden p-2"
-              onClick={() => setMobileOpen(!mobileOpen)}
-              aria-label="Toggle menu"
-            >
-              <Menu className="h-6 w-6" />
-            </button>
           </div>
         </div>
       </div>
 
       {/* Bottom nav: only Perfumes and Categories */}
-      <div className="hidden lg:block border-t">
+      <div className="hidden md:block border-t">
         <div className="container mx-auto px-4">
           <nav className="flex items-center gap-6 py-3 text-sm">
             <Link href="/" className="hover:text-foreground">
@@ -168,8 +177,8 @@ export function Nav() {
 
       {/* Mobile slide-down menu */}
       {mobileOpen && (
-        <div className="lg:hidden border-t bg-background">
-          <div className="px-4 py-4">
+        <div className="md:hidden border-t bg-background">
+          <div className="px-4 py-4 h-[70vh] flex flex-col items-between justify-between">
             <nav className="flex flex-col gap-2">
               <Link href="/" className="py-1">
                 Home
@@ -184,18 +193,36 @@ export function Nav() {
                 Perfumes
               </Link>
               <div className="pt-2 border-t">
-                <div className="text-sm font-semibold mb-2">Categories</div>
-                {categories?.map((c) => (
-                  <Link
+                <div className="text-sm font-semibold mb-1">Categories</div>
+                <div className="flex flex-col gap-2 max-h-[30vh] overflow-y-auto">
+                  {categories?.map((c) => (
+                    <Link
                     key={c.id}
                     href={`/products?category=${c.id}`}
                     className="block py-2 text-sm"
-                  >
-                    {c.name}
-                  </Link>
-                ))}
+                    >
+                      {c.name}
+                    </Link>
+                  ))}
+                </div>
               </div>
             </nav>
+            <div className="pt-4 border-t flex items-center gap-3">
+              {isAuthenticated ? (
+                <div className="flex flex-col gap-2">
+                  <Link className="flex gap-2 text-foreground hover:text-popover-foreground" href={user?.role === "customer" ? "/dashboard" : "/admin"}>
+                    <User className="h-5 w-5" />
+                      Dashboard
+                  </Link>
+
+                </div>
+              ) : (
+                  <Link href="/login" className="flex gap-2 text-foreground hover:text-popover-foreground">
+                    <LogIn className="h-5 w-5" />
+                    Sign in
+                  </Link>
+              )}
+            </div>
           </div>
         </div>
       )}

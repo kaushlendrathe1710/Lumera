@@ -16,6 +16,7 @@ import {
   type PaymentStatus,
   type PaymentMethod,
   insertContactDetailSchema,
+  updateContactDetailSchema,
 } from "@shared/schema";
 import { z } from "zod";
 import { registerS3Routes } from "./s3-routes";
@@ -362,7 +363,7 @@ export async function registerRoutes(
   app.put("/api/admin/contact-details/:id", requireAdmin, async (req, res) => {
     try {
       const id = req.params.id as string;
-      const data = insertContactDetailSchema.partial().parse(req.body);
+      const data = updateContactDetailSchema.parse(req.body);
       const updated = await storage.updateContactDetail(id, data);
       if (!updated) return res.status(404).json({ error: "Not found" });
       res.json(updated);
