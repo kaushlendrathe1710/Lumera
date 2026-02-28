@@ -11,14 +11,17 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("theme") as Theme;
-      if (saved) return saved;
-      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-    }
-    return "light";
-  });
+  const [theme, setTheme] = useState<Theme>(
+    // () => {
+    //   if (typeof window !== "undefined") {
+    //     const saved = localStorage.getItem("theme") as Theme;
+    //     if (saved) return saved;
+    //     return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    //   }
+    //   return "light";
+    // }
+    "light"
+  );
 
   useEffect(() => {
     const root = document.documentElement;

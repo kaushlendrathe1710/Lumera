@@ -26,6 +26,11 @@ export default {
           foreground: "hsl(var(--popover-foreground) / <alpha-value>)",
           border: "hsl(var(--popover-border) / <alpha-value>)",
         },
+        royal: {
+          DEFAULT: "hsl(var(--royal) / <alpha-value>)",
+          foreground: "hsl(var(--royal-foreground) / <alpha-value>)",
+          border: "var(--royal-border)",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary) / <alpha-value>)",
           foreground: "hsl(var(--primary-foreground) / <alpha-value>)",
