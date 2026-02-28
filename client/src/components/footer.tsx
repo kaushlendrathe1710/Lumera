@@ -35,7 +35,7 @@ export function Footer() {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="/shipping" className="hover:text-foreground transition-colors">Shipping Info</Link></li>
               <li><Link href="/returns" className="hover:text-foreground transition-colors">Returns</Link></li>
-              <li><Link href="/faq" className="hover:text-foreground transition-colors">FAQ</Link></li>
+              {/* <li><Link href="/faq" className="hover:text-foreground transition-colors">FAQ</Link></li> */}
               <li><Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link></li>
             </ul>
           </div>
@@ -43,7 +43,7 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4">Contact Us</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>UAE</li>
+              <li>Dubai , Al-khawaneej</li>
             </ul>
           </div>
         </div>

@@ -53,7 +53,7 @@ function Router() {
       <Route path="/about" component={About} />
       <Route path="/contact" component={Contact} />
       <Route path="/shipping" component={Shipping} />
-      <Route path="/faq" component={Faq} />
+      {/* <Route path="/faq" component={Faq} /> */}
       <Route path="/privacy" component={Privacy} />
       <Route path="/returns" component={Returns} />
       <Route path="/products/:id" component={ProductDetail} />
