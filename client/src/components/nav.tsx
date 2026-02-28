@@ -30,7 +30,7 @@ export function Nav() {
   }, [searchString]);
 
   return (
-    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
+    <header className="sticky top-0 z-50 bg-royal border-white/10 border-b">
       {/* Top meta bar removed (no store locator / language) */}
 
       {/* Middle: logo + search + actions */}
@@ -38,7 +38,7 @@ export function Nav() {
         <div className="flex items-center justify-between h-20">
           {/* Mobile menu toggle */}
         <button
-          className="md:hidden p-2"
+          className="md:hidden p-2 text-white"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
         >
@@ -88,7 +88,6 @@ export function Nav() {
               <div className="w-20 h-20 flex items-center justify-center">
                 <img
                   src="/logo.png"
-                  className="mix-blend-difference"
                   alt="Lumera Logo"
                 />
               </div>
@@ -96,7 +95,7 @@ export function Nav() {
             </div>
           </Link>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 text-white">
             <ThemeToggle />
             <Link href="/cart">
               <Button variant="ghost" size="icon" className="relative">
@@ -139,23 +138,23 @@ export function Nav() {
       </div>
 
       {/* Bottom nav: only Perfumes and Categories */}
-      <div className="hidden md:block border-t">
+      <div className="hidden md:block border-white/10 border-t">
         <div className="container mx-auto px-4">
-          <nav className="flex items-center gap-6 py-3 text-sm">
-            <Link href="/" className="hover:text-foreground">
+          <nav className="flex items-center text-white gap-2 py-1 text-sm">
+            <Link href="/" className=" hover:bg-white/10 p-2 rounded-md">
               Home
             </Link>
-            <Link href="/about" className="hover:text-foreground">
+            <Link href="/about" className=" hover:bg-white/10 p-2 rounded-md">
               About
             </Link>
-            <Link href="/contact" className="hover:text-foreground">
+            <Link href="/contact" className=" hover:bg-white/10 p-2 rounded-md">
               Contact
             </Link>
-            <Link href="/products" className="hover:text-foreground">
+            <Link href="/products" className=" hover:bg-white/10 p-2 rounded-md">
               Perfumes
             </Link>
             <div className="group relative">
-              <button className="hover:text-foreground">Categories</button>
+              <button className="hover:bg-white/10 p-2 rounded-md">Categories</button>
               <div className="absolute left-0 top-full mt-2 w-56 bg-muted shadow-lg rounded-md opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all z-50">
                 <ul className="p-3">
                   {categories?.map((cat) => (
@@ -177,29 +176,29 @@ export function Nav() {
 
       {/* Mobile slide-down menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t bg-background">
+        <div className="md:hidden border-t border-white/10 bg-royal text-white">
           <div className="px-4 py-4 h-[70vh] flex flex-col items-between justify-between">
             <nav className="flex flex-col gap-2">
-              <Link href="/" className="py-1">
+              <Link href="/" className="py-1 hover:bg-white/10 px-3 rounded-md">
                 Home
               </Link>
-              <Link href="/about" className="py-1">
+              <Link href="/about" className="py-1 hover:bg-white/10 px-3 rounded-md">
                 About
               </Link>
-              <Link href="/contact" className="py-1">
+              <Link href="/contact" className="py-1 hover:bg-white/10 px-3 rounded-md">
                 Contact
               </Link>
-              <Link href="/products" className="py-1">
+              <Link href="/products" className="py-1 hover:bg-white/10 px-3 rounded-md">
                 Perfumes
               </Link>
-              <div className="pt-2 border-t">
+              <div className="pt-2 border-t border-white/10">
                 <div className="text-sm font-semibold mb-1">Categories</div>
                 <div className="flex flex-col gap-2 max-h-[30vh] overflow-y-auto">
                   {categories?.map((c) => (
                     <Link
                     key={c.id}
                     href={`/products?category=${c.id}`}
-                    className="block py-2 text-sm"
+                    className="block py-2 text-sm hover:bg-white/10 px-3 rounded-md"
                     >
                       {c.name}
                     </Link>
@@ -207,17 +206,17 @@ export function Nav() {
                 </div>
               </div>
             </nav>
-            <div className="pt-4 border-t flex items-center gap-3">
+            <div className="pt-4 border-t border-white/10 flex items-center gap-3">
               {isAuthenticated ? (
                 <div className="flex flex-col gap-2">
-                  <Link className="flex gap-2 text-foreground hover:text-popover-foreground" href={user?.role === "customer" ? "/dashboard" : "/admin"}>
+                  <Link className="flex gap-2 text-white hover:text-gray-300" href={user?.role === "customer" ? "/dashboard" : "/admin"}>
                     <User className="h-5 w-5" />
                       Dashboard
                   </Link>
 
                 </div>
               ) : (
-                  <Link href="/login" className="flex gap-2 text-foreground hover:text-popover-foreground">
+                  <Link href="/login" className="flex gap-2 text-white hover:text-gray-300">
                     <LogIn className="h-5 w-5" />
                     Sign in
                   </Link>
