@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingCart, Star, Shield, Leaf, ChevronRight, ArrowRight, Package, Check, ArrowUp } from "lucide-react";
+import { ShoppingCart, Star, Shield, Leaf, ChevronRight, ArrowRight, Package, ArrowUp } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import { useCart } from "@/lib/cart";
 import { useToast } from "@/hooks/use-toast";
@@ -12,7 +12,7 @@ import { Nav } from "@/components/nav";
 import { Footer } from "@/components/footer";
 import type { ProductWithCategory as Product } from "@shared/schema";
 import heroImage from "@/assets/images/hero.jpg";
-import uaeBackground from "@/assets/images/uae-background.png";
+import hero2 from "@/assets/images/hero-2.jpg";
 
 export default function Home() {
   const { addItem, items: cartItems } = useCart();
@@ -58,38 +58,6 @@ export default function Home() {
           />
           <div className="absolute inset-0" />
         </div>
-
-        <div className="relative container mx-auto px-4 py-24 md:py-32 lg:py-40">
-          {/* <div className="max-w-2xl">
-            <Badge className="mb-4 bg-primary/90 text-primary-foreground">
-              Signature Fragrances
-            </Badge>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white mb-6 leading-tight">
-              Lumera - <br />
-              <span className="text-primary">your moment, your signature!</span>
-            </h1>
-            <p className="text-lg md:text-xl text-gray-200 mb-8 leading-relaxed">
-              Lumera crafts exquisite perfumes inspired by timeless fragrances. Our blends are
-              thoughtfully composed from high-quality, sustainably sourced ingredients to deliver
-              a luxurious and memorable scent experience.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link href="/products">
-                <Button size="lg" className="gap-2" data-testid="button-shop-now">
-                  Shop Now <ArrowRight className="h-5 w-5" />
-                </Button>
-              </Link>
-              <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white backdrop-blur-sm" onClick={() => document.getElementById("featured-products")?.scrollIntoView({ behavior: "smooth" })}>
-                Learn More
-              </Button>
-            </div>
-          </div> */}
-            {/* <div className="flex flex-col items-center justify-center gap-2 text-white w-full h-full text-center">
-
-            <p>Perfume is not scent...</p>
-            <p>Rather, it is the impact you leave after you leave.</p>
-          </div> */}
-        </div>
       </section>
 
       <section id="featured-products" className="py-16 md:py-24 bg-royal">
@@ -102,7 +70,7 @@ export default function Home() {
                 <p className="text-gray-200">Our most popular perfume selections</p>
             </div>
             <Link href="/products">
-              <Button variant="ghost" className="gap-2" data-testid="link-view-all">
+              <Button variant="ghost" className="gap-2 text-white" data-testid="link-view-all">
                 View All <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
@@ -122,9 +90,9 @@ export default function Home() {
               ))
             ) : featuredProducts.length > 0 ? (
               featuredProducts.map((product) => (
-                <Card key={product.id} className="overflow-hidden bg-gray-200 group hover-elevate" data-testid={`card-product-${product.id}`}>
+                <Card key={product.id} className="overflow-hidden bg-transparent group transition-all duration-300 hover:-translate-y-1 border-none" data-testid={`card-product-${product.id}`}>
                   <Link href={`/products/${product.id}`}>
-                    <div className="aspect-square overflow-hidden bg-muted">
+                    <div className="aspect-square overflow-hidden bg-transparent">
                       {product.imageUrl ? (
                         <img
                           src={product.imageUrl}
@@ -132,19 +100,23 @@ export default function Home() {
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-muted">
+                        <div className="w-full h-full flex items-center justify-center bg-transparent">
                           <Package className="h-12 w-12 text-muted-foreground" />
                         </div>
                       )}
                     </div>
                   </Link>
                   <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
                     <Link href={`/products/${product.id}`}>
-                      <h3 className="font-semibold text-gray-800 mb-1 transition-colors">
+                      <h3 className="font-semibold text-white mb-1 transition-colors">
                         {product.name}
                       </h3>
                     </Link>
-                    <p className="text-sm text-gray-600 mb-1">{product.category?.name || "Uncategorized"}</p>
+                    <p className="text-sm text-gray-400 mb-1">
+                      {product.category?.name || "Uncategorized"}
+                    </p>
                     {ratingsMap.get(product.id) && (
                       <div className="flex items-center gap-1 mb-1">
                         <div className="flex items-center gap-0.5">
@@ -152,37 +124,39 @@ export default function Home() {
                             <Star
                               key={star}
                               className={`h-3 w-3 ${
-                                star <= Math.round(ratingsMap.get(product.id)!.avgRating) ? "fill-primary text-primary" : "text-muted-foreground/30"
+                                star <= Math.round(ratingsMap.get(product.id)!.avgRating) ? "fill-primary text-primary" : "text-gray-300"
                               }`}
                             />
                           ))}
                         </div>
-                        <span className="text-xs text-muted-foreground">({ratingsMap.get(product.id)!.reviewCount})</span>
+                        <span className="text-xs text-gray-300">({ratingsMap.get(product.id)!.reviewCount})</span>
                       </div>
-                    )}
+                        )}
+                        </div>
                     {product.discountPercent && product.discountPercent > 0 && (
                       <Badge variant="destructive">
                         {product.discountPercent}% OFF
                       </Badge>
-                    )}
-                    <div className="flex items-center justify-between mt-3">
+                      )}
+                      </div>
+                    <div className="flex items-center justify-center mt-3">
                       <div>
                         {product.discountPercent && product.discountPercent > 0 ? (
                           <>
-                            <span className="text-lg font-bold text-primary">
+                            <span className="text-lg font-bold text-white">
                               {(parseFloat(product.price) * (1 - product.discountPercent / 100)).toFixed(2)} AED
                             </span>
-                            <span className="text-sm text-gray-600 line-through ml-2">
+                            <span className="text-sm text-gray-300 line-through ml-2">
                               {parseFloat(product.price).toFixed(2)} AED
                             </span>
                           </>
                         ) : (
-                          <span className="text-lg font-bold text-primary">
+                          <span className="text-lg font-bold text-white">
                             {parseFloat(product.price).toFixed(2)} AED
                           </span>
                         )}
                       </div>
-                      {cartItems.some(item => item.product.id === product.id) ? (
+                      {/* {cartItems.some(item => item.product.id === product.id) ? (
                         <Link href="/cart">
                           <Button
                             size="sm"
@@ -208,30 +182,30 @@ export default function Home() {
                         >
                           <ShoppingCart className="h-4 w-4 mr-1" /> Add
                         </Button>
-                      )}
+                      )} */}
                     </div>
                   </CardContent>
                 </Card>
               ))
             ) : (
               <div className="col-span-full text-center py-12">
-                <p className="text-muted-foreground">No products available yet.</p>
+                <p className="text-gray-300">No products available yet.</p>
               </div>
             )}
           </div>
         </div>
       </section>
 
-      <section className="relative py-20 overflow-hidden">
+      <section className="relative h-[70vh] py-20 overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src={uaeBackground}
-            alt="UAE landscape"
+            src={hero2}
+            alt="Lumera Hero Image 2"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-black/60" />
+          {/* <div className="absolute inset-0 bg-black/60" /> */}
         </div>
-        <div className="relative container mx-auto px-4 text-center">
+        {/* <div className="relative container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">
             Artisanal Fragrance Blends
           </h2>
@@ -245,16 +219,16 @@ export default function Home() {
               Explore Our Collection <ArrowRight className="h-5 w-5" />
             </Button>
           </Link>
-        </div>
+        </div> */}
       </section>
 
-      <section className="py-16 md:py-24 bg-card">
+      <section className="py-16 md:py-24 bg-royal">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-4">
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">
               Why Choose Lumera?
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-gray-300 max-w-2xl mx-auto">
               Craftsmanship, transparency, and enduring quality — every bottle reflects our
               dedication to exceptional perfumery.
             </p>
@@ -279,8 +253,8 @@ export default function Home() {
               },
             ].map((item, i) => (
               <Card key={i} className="text-center p-6">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <item.icon className="h-8 w-8 text-primary" />
+                <div className="w-16 h-16 bg-royal/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <item.icon className="h-8 w-8 text-royal" />
                 </div>
                 <h3 className="text-xl font-semibold text-foreground mb-2">{item.title}</h3>
                 <p className="text-muted-foreground">{item.description}</p>

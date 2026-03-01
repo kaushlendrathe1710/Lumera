@@ -91,6 +91,7 @@ export default {
         sans: ["var(--font-sans)"],
         serif: ["var(--font-serif)"],
         mono: ["var(--font-mono)"],
+        playfairDisplay: ["var(--font-playfair-display)"],
       },
       keyframes: {
         "accordion-down": {
