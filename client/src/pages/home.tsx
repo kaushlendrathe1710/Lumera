@@ -92,7 +92,7 @@ export default function Home() {
               featuredProducts.map((product) => (
                 <Card key={product.id} className="overflow-hidden bg-transparent group transition-all duration-300 hover:-translate-y-1 border-none" data-testid={`card-product-${product.id}`}>
                   <Link href={`/products/${product.id}`}>
-                    <div className="aspect-square w-[80%] mx-auto overflow-hidden bg-transparent">
+                    <div className="aspect-square mx-auto w-[13rem] md:w-full overflow-hidden bg-transparent">
                       {product.imageUrl ? (
                         <img
                           src={product.imageUrl}
@@ -139,7 +139,7 @@ export default function Home() {
                       </Badge>
                       )}
                       </div>
-                    <div className="flex items-center justify-center mt-3">
+                    <div className="flex items-center justify-center mt-1 md:mt-3">
                       <div>
                         {product.discountPercent && product.discountPercent > 0 ? (
                           <>
