@@ -28,11 +28,11 @@ export default function About() {
                 composition, longevity, and an elevated sensory experience.
               </p>
 
-              <h2 className="font-bold text-foreground">Hands-on Harvesting & Quality</h2>
+              <h2 className="font-bold text-foreground">Hands-on Sourcing & Quality</h2>
               <p>
                 We are not merely distributors — we are directly involved in the harvesting and sourcing process, allowing
                 us to maintain strict control over quality at every stage. From the selection of floral regions to final
-                packaging, our focus remains on preserving honey in its most natural and unaltered form.
+                packaging, our focus remains on preserving the character and integrity of our ingredients.
               </p>
 
               <h2 className="font-bold text-foreground">Carefully Sourced Ingredients</h2>
