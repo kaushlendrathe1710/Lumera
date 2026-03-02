@@ -92,7 +92,7 @@ export default function Home() {
               featuredProducts.map((product) => (
                 <Card key={product.id} className="overflow-hidden bg-transparent group transition-all duration-300 hover:-translate-y-1 border-none" data-testid={`card-product-${product.id}`}>
                   <Link href={`/products/${product.id}`}>
-                    <div className="aspect-square overflow-hidden bg-transparent">
+                    <div className="aspect-square w-[80%] mx-auto overflow-hidden bg-transparent">
                       {product.imageUrl ? (
                         <img
                           src={product.imageUrl}
@@ -268,7 +268,7 @@ export default function Home() {
     </div>
     {showScrollTop && (
       <button
-        className="fixed bottom-6 right-6 z-[9999] h-10 w-10 flex items-center justify-center rounded-full bg-primary text-white shadow-lg hover:bg-primary/90 transition-colors"
+        className="fixed bottom-6 right-6 z-[9999] h-10 w-10 flex items-center justify-center rounded-full bg-white text-black shadow-lg transition-colors"
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         data-testid="button-scroll-top"
         aria-label="Scroll to top"
