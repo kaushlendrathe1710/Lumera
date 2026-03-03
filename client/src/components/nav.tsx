@@ -78,7 +78,7 @@ export function Nav() {
                   className="px-2 py-2 outline-none bg-transparent text-sm"
                 />
 
-                <Button type="submit" className="rounded-r-md px-3">
+                <Button type="submit" className="rounded-r-md px-3 border-white">
                   Search
                 </Button>
               </form>
