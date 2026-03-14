@@ -192,7 +192,7 @@ export default function Checkout() {
                 </CardContent>
               </Card>
 
-              <Card>
+              {/* <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <CreditCard className="h-5 w-5" />
@@ -249,7 +249,7 @@ export default function Checkout() {
                     </div>
                   </RadioGroup>
                 </CardContent>
-              </Card>
+              </Card> */}
             </div>
 
             <div>
@@ -316,7 +316,11 @@ export default function Checkout() {
                   </div>
 
                   <Button
-                    type="submit"
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      window.location.href = "https://pay.ziina.com/lumera/yQHO58xQW"
+                    }}
                     className="w-full"
                     size="lg"
                     disabled={isSubmitting || !selectedAddress}
