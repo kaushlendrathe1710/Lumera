@@ -60,6 +60,7 @@ interface ProductFormData {
   stock: number;
   weight: string;
   origin: string;
+  paymentLink: string;
   imageUrl: string;
   images: string[];
   isFeatured: boolean;
@@ -78,6 +79,7 @@ const initialFormData: ProductFormData = {
   stock: 0,
   weight: "",
   origin: "",
+  paymentLink: "",
   imageUrl: "",
   images: [],
   isFeatured: false,
@@ -172,6 +174,7 @@ export default function AdminProducts() {
       name: product.name,
       description: product.description,
       shortDescription: product.shortDescription || "",
+      paymentLink: product.paymentLink || "",
       price: product.price,
       comparePrice: product.comparePrice || "",
       discountPercent: product.discountPercent || 0,
@@ -343,6 +346,9 @@ export default function AdminProducts() {
     if (formData.origin?.trim()) {
       submitData.origin = formData.origin.trim();
     }
+    if (formData.paymentLink?.trim()) {
+      submitData.paymentLink = formData.paymentLink.trim();
+    }
     submitData.imageUrl = formData.imageUrl || null;
     submitData.images = formData.images.length > 0 ? formData.images : null;
 
@@ -436,6 +442,16 @@ export default function AdminProducts() {
                       value={formData.origin}
                       onChange={(e) => setFormData((prev) => ({ ...prev, origin: e.target.value }))}
                       data-testid="input-product-origin"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="paymentLink">Payment Link</Label>
+                    <Input
+                      id="paymentLink"
+                      placeholder="https://pay.example.com/your-link"
+                      value={formData.paymentLink}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, paymentLink: e.target.value }))}
+                      data-testid="input-product-payment-link"
                     />
                   </div>
                 </div>

@@ -78,6 +78,7 @@ export const products = pgTable("products", {
   discountPercent: integer("discount_percent").default(0),
   imageUrl: text("image_url"),
   images: text("images").array(),
+  paymentLink: text("payment_link"),
   categoryId: varchar("category_id").notNull().references(() => categories.id),
   sku: text("sku"),
   stock: integer("stock").notNull().default(0),

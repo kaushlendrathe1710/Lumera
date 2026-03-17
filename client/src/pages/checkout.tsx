@@ -312,7 +312,11 @@ export default function Checkout() {
                     type="button"
                     onClick={(e) => {
                       e.preventDefault();
-                      window.location.href = "https://pay.ziina.com/lumera/yQHO58xQW"
+                      const defaultPaymentLink = "https://pay.ziina.com/lumera/yQHO58xQW";
+                      // Use first available product payment link, otherwise fallback to default
+                      const productPaymentLink = items.map(i => i.product.paymentLink).find(Boolean);
+                      const redirectUrl = productPaymentLink || defaultPaymentLink;
+                      window.location.href = redirectUrl;
                     }}
                     className="w-full"
                     size="lg"
