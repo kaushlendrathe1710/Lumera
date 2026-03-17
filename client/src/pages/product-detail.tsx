@@ -343,7 +343,6 @@ export default function ProductDetail() {
                       <Truck className="h-5 w-5 text-primary" />
                       <div>
                         <p className="font-medium text-foreground">Free Delivery</p>
-                        <p className="text-sm text-muted-foreground">On orders over 200 AED</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">

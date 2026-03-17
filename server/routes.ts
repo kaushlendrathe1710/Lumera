@@ -1620,22 +1620,10 @@ export async function registerRoutes(
           });
         }
 
-        // Calculate shipping cost server-side based on computed subtotal
-        const shippingCost = subtotal >= 200 ? 0 : 25;
-        if (shippingCost > 0) {
-          lineItems.push({
-            price_data: {
-              currency: "aed",
-              product_data: {
-                name: "Shipping",
-                description: "Standard Delivery",
-              },
-              unit_amount: shippingCost * 100,
-            },
-            quantity: 1,
-          });
-        }
+        // Shipping is free site-wide
+        const shippingCost = 0;
 
+        // No shipping line item is added since shipping is free
         const totalAmount = subtotal + shippingCost;
 
         // Check if user has an existing unpaid Stripe order

@@ -4,9 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { ArrowLeft, Loader2, CreditCard, Lock, Truck, Package } from "lucide-react";
+import { ArrowLeft, Loader2, Lock, Package } from "lucide-react";
 import { useCart, getDiscountedPrice } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -24,8 +22,9 @@ export default function Checkout() {
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"card" | "cod">("card");
 
-  const shippingCost = total >= 200 ? 0 : 25;
-  const grandTotal = total + shippingCost;
+  // Shipping is free site-wide
+  const shippingCost = 0;
+  const grandTotal = total;
 
   // COD Order Mutation
   const createOrderMutation = useMutation({
@@ -298,13 +297,7 @@ export default function Checkout() {
                     </div>
                     <div className="flex justify-between text-sm text-foreground">
                       <span>Shipping</span>
-                      <span>
-                        {shippingCost === 0 ? (
-                          <span className="text-green-600">Free</span>
-                        ) : (
-                          `${shippingCost.toFixed(2)} AED`
-                        )}
-                      </span>
+                      <span className="text-green-600">Free shipping</span>
                     </div>
                   </div>
 

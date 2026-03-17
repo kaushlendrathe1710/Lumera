@@ -13,8 +13,9 @@ export default function Cart() {
   const { user, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
 
-  const shippingCost = total >= 200 ? 0 : 25;
-  const grandTotal = total + shippingCost;
+  // Shipping is free site-wide
+  const shippingCost = 0;
+  const grandTotal = total;
 
   return (
     <div className="min-h-screen bg-background">
@@ -172,19 +173,8 @@ export default function Cart() {
                   </div>
                   <div className="flex justify-between text-foreground">
                     <span>Shipping</span>
-                    <span>
-                      {shippingCost === 0 ? (
-                        <span className="text-green-600">Free</span>
-                      ) : (
-                        `${shippingCost.toFixed(2)} AED`
-                      )}
-                    </span>
+                    <span className="text-green-600">Free shipping</span>
                   </div>
-                  {shippingCost > 0 && (
-                    <p className="text-sm text-muted-foreground">
-                      Add {(200 - total).toFixed(2)} AED more for free shipping
-                    </p>
-                  )}
                   <Separator />
                   <div className="flex justify-between text-lg font-bold text-foreground">
                     <span>Total</span>
@@ -195,9 +185,6 @@ export default function Cart() {
                       Proceed to Checkout
                     </Button>
                   </Link>
-                  <p className="text-xs text-center text-muted-foreground">
-                    Taxes and final shipping calculated at checkout
-                  </p>
                 </CardContent>
               </Card>
             </div>

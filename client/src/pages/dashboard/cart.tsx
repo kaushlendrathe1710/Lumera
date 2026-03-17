@@ -13,8 +13,9 @@ export default function DashboardCart() {
   const { items, removeItem, updateQuantity, total, clearCart } = useCart();
   const { isAuthenticated } = useAuth();
 
-  const shippingCost = total >= 200 ? 0 : 25;
-  const grandTotal = total + shippingCost;
+  // Shipping is free site-wide
+  const shippingCost = 0;
+  const grandTotal = total;
 
   const handleCheckout = () => {
     if (isAuthenticated) {
@@ -154,19 +155,8 @@ export default function DashboardCart() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Shipping</span>
-                <span className="font-medium">
-                  {shippingCost === 0 ? (
-                    <span className="text-green-600">Free</span>
-                  ) : (
-                    `${shippingCost.toFixed(2)} AED`
-                  )}
-                </span>
+                <span className="font-medium text-green-600">Free shipping</span>
               </div>
-              {total < 200 && (
-                <p className="text-xs text-muted-foreground">
-                  Add {(200 - total).toFixed(2)} AED more for free shipping
-                </p>
-              )}
               <Separator />
               <div className="flex justify-between font-semibold text-lg">
                 <span>Total</span>
