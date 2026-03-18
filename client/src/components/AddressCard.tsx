@@ -112,7 +112,8 @@ export function AddressCard({
               {address.city}, {address.stateRegion}
             </p>
             <p>
-              {address.countryName} - {address.postalCode}
+              {address.countryName}
+              {/* - {address.postalCode} */}
             </p>
           </div>
         </div>

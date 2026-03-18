@@ -32,16 +32,16 @@ import { Loader2 } from "lucide-react";
 import { z } from "zod";
 
 // Omit userId from the form schema
-const formSchema = insertAddressSchema.omit({ userId: true });
+const formSchema = insertAddressSchema.omit({ userId: true, postalCode: true });
 type FormData = z.infer<typeof formSchema>;
 
 interface Country {
   id: number;
-  code: string;
   name: string;
-  phone_code: string;
-  currency: string;
-  timezone: string;
+  isoCode: string;
+  dialCode: string;
+  phoneLength: string;
+  createdAt: string;
 }
 
 interface LocationData {
@@ -57,7 +57,7 @@ interface LocationData {
 interface AddressFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: Omit<InsertAddress, "userId">) => Promise<void>;
+  onSubmit: (data: Omit<InsertAddress, "userId" | "postalCode">) => Promise<void>;
   address?: Address;
   isLoading?: boolean;
 }
@@ -79,7 +79,6 @@ export function AddressFormModal({
       addressLine2: address?.addressLine2 || "",
       city: address?.city || "",
       stateRegion: address?.stateRegion || "",
-      postalCode: address?.postalCode || "",
       countryName: address?.countryName || "",
       label: address?.label || "home",
       isDefault: address?.isDefault || false,
@@ -90,7 +89,7 @@ export function AddressFormModal({
   const { data: countries = [] } = useQuery<Country[]>({
     queryKey: ["countries"],
     queryFn: async () => {
-      const res = await fetch("/api/locations/countries");
+      const res = await fetch("/api/countries");
       if (!res.ok) throw new Error("Failed to fetch countries");
       return res.json();
     },
@@ -132,7 +131,7 @@ export function AddressFormModal({
     const country = countries.find(c => c.name === countryName);
     if (!country) return;
 
-    setSelectedCountryCode(country.code);
+    setSelectedCountryCode(country.isoCode);
     form.setValue("countryName", countryName);
     form.setValue("stateRegion", "");
     form.setValue("city", "");
@@ -332,19 +331,7 @@ export function AddressFormModal({
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="postalCode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Postal Code *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Postal/ZIP code" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* postalCode field removed from UI intentionally */}
             </div>
 
             <FormField

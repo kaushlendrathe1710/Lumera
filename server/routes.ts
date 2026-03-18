@@ -12,6 +12,7 @@ import {
   insertCategorySchema,
   insertSupportedCountrySchema,
   insertAddressSchema,
+  type InsertAddress,
   type OrderStatus,
   type PaymentStatus,
   type PaymentMethod,
@@ -864,13 +865,20 @@ export async function registerRoutes(
     try {
       const userId = req.session.userId!;
 
-      // Parse and validate the address data
-      const addressData = insertAddressSchema.parse({
+      // Parse and validate the address data (allow payloads without postalCode)
+      const addressInputSchema = insertAddressSchema.omit({ postalCode: true });
+      const addressData = addressInputSchema.parse({
         ...req.body,
         userId, // Always use authenticated user's ID
       });
 
-      const address = await storage.createAddress(addressData);
+      // Ensure postalCode exists for DB (table currently requires not null)
+      const addressToCreate = {
+        ...addressData,
+        postalCode: (req.body?.postalCode as string) ?? "",
+      } as InsertAddress;
+
+      const address = await storage.createAddress(addressToCreate);
       res.json(address);
     } catch (error) {
       console.error("Create address error:", error);
@@ -907,9 +915,10 @@ export async function registerRoutes(
       }
 
       // Validate update data
+      // Allow partial updates and don't require postalCode in update payload
       const partialSchema = insertAddressSchema
         .partial()
-        .omit({ userId: true });
+        .omit({ userId: true, postalCode: true });
       const updateData = partialSchema.parse(req.body);
 
       const updated = await storage.updateAddress(addressId, updateData);

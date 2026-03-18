@@ -13,7 +13,7 @@ export function useAddresses() {
 
   // Create address mutation
   const createAddressMutation = useMutation({
-    mutationFn: async (data: Omit<InsertAddress, "userId">) => {
+    mutationFn: async (data: Omit<InsertAddress, "userId" | "postalCode">) => {
       const res = await fetch("/api/address", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

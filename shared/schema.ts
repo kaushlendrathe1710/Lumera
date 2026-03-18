@@ -313,12 +313,12 @@ export const insertAddressSchema = createInsertSchema(addresses).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  
 }).extend({
   addressLine1: z.string().min(5, "Address line 1 must be at least 5 characters"),
   addressLine2: z.string().optional(),
   city: z.string().min(2, "City must be at least 2 characters"),
   stateRegion: z.string().min(2, "State/Region is required"),
-  postalCode: z.string().min(3, "Postal code must be at least 3 characters").max(20, "Postal code is too long"),
   countryName: z.string().min(2, "Country is required"),
   label: z.string().min(1, "Label is required").default("home"),
   isDefault: z.boolean().default(false),
