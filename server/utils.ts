@@ -257,9 +257,9 @@ export const orderInvoiceTemplate = (order: OrderWithItems, user: User, qrCodeDa
         <div class="address-title">From</div>
         <div class="address-content">
           <div class="bold">Lumera</div>
-          <div>Based in India</div>
-          <div>Himalayan producers network</div>
-          <div>kaushlendra.k12@fms.edu</div>
+          <div>Based in UAE</div>
+          <div>Made in Dubai</div>
+          <div>Lumera.ae@hotmail.com</div>
         </div>
       </div>
     </div>
@@ -306,8 +306,8 @@ export const orderInvoiceTemplate = (order: OrderWithItems, user: User, qrCodeDa
     <!-- Footer Info -->
     <div class="footer-info">
         <div class="bold">Thank you for your purchase!</div>
-      <div>Lumera | Based in India — perfumery & sourcing network | kaushlendra.k12@fms.edu</div>
-      <div>For support, contact us at kaushlendra.k12@fms.edu</div>
+      <div>Lumera | Based in UAE — perfumery & sourcing network | Lumera.ae@hotmail.com</div>
+      <div>For support, contact us at Lumera.ae@hotmail.com</div>
     </div>
   </div>
 </body>
