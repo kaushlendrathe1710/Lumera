@@ -77,7 +77,8 @@ export interface IStorage {
     orderId: string,
     paymentStatus: PaymentStatus,
     stripeSessionId?: string,
-    stripePaymentIntentId?: string
+    stripePaymentIntentId?: string,
+    syncOrderStatus?: boolean,
   ): Promise<Order | undefined>;
   createOrderItem(item: InsertOrderItem): Promise<OrderItem>;
   getOrderItems(orderId: string): Promise<OrderItem[]>;
@@ -493,13 +494,17 @@ export class DatabaseStorage implements IStorage {
     orderId: string,
     paymentStatus: PaymentStatus,
     stripeSessionId?: string,
-    stripePaymentIntentId?: string
+    stripePaymentIntentId?: string,
+    syncOrderStatus = true,
   ): Promise<Order | undefined> {
     const updateData: any = {
       paymentStatus,
-      status: (paymentStatus === 'paid' ? 'processing' : 'pending') as OrderStatus,
       updatedAt: new Date(),
     };
+
+    if (syncOrderStatus) {
+      updateData.status = (paymentStatus === 'paid' ? 'processing' : 'pending') as OrderStatus;
+    }
 
     if (stripeSessionId) {
       updateData.stripeSessionId = stripeSessionId;

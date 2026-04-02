@@ -28,7 +28,6 @@ type OrderWithAnnotation = Order & {
 export default function AdminOrders() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>("all");
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>("all");
 
   const { data: orders, isLoading } = useQuery<OrderWithAnnotation[]>({
@@ -54,16 +53,12 @@ export default function AdminOrders() {
       filtered = filtered.filter((o) => o.status === statusFilter);
     }
 
-    if (paymentMethodFilter && paymentMethodFilter !== "all") {
-      filtered = filtered.filter((o) => o.paymentMethod === paymentMethodFilter);
-    }
-
     if (paymentStatusFilter && paymentStatusFilter !== "all") {
       filtered = filtered.filter((o) => o.paymentStatus === paymentStatusFilter);
     }
 
     return filtered;
-  }, [orders, searchQuery, statusFilter, paymentMethodFilter, paymentStatusFilter]);
+  }, [orders, searchQuery, statusFilter, paymentStatusFilter]);
 
 
   return (
@@ -107,16 +102,6 @@ export default function AdminOrders() {
                     <SelectItem value="returning">Returning</SelectItem>
                     <SelectItem value="returned">Returned</SelectItem>
                     <SelectItem value="refunded">Refunded</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
-                  <SelectTrigger className="w-36" data-testid="select-payment-method-filter">
-                    <SelectValue placeholder="Payment" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Payments</SelectItem>
-                    <SelectItem value="stripe">Stripe</SelectItem>
-                    <SelectItem value="cod">COD</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
@@ -180,9 +165,7 @@ export default function AdminOrders() {
                           {parseFloat(order.totalAmount).toFixed(2)} AED
                         </TableCell>
                         <TableCell>
-                          <Badge variant={order.paymentMethod === "stripe" ? "default" : "outline"}>
-                            {order.paymentMethod === "stripe" ? "💳 Stripe" : "💵 COD"}
-                          </Badge>
+                          <Badge variant="default">Online</Badge>
                         </TableCell>
                         <TableCell>
                           <Badge variant={order.paymentStatus === "paid" ? "default" : "secondary"}>

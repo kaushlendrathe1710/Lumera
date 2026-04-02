@@ -1209,7 +1209,11 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Invalid total amount" });
       }
 
-      // COD orders are created immediately and are valid for admin processing
+      // Determine payment method for this order (default to 'cod')
+      const requestedPaymentMethod = req.body.paymentMethod || "cod";
+      const validPaymentMethod = (requestedPaymentMethod as PaymentMethod) || ("cod" as PaymentMethod);
+
+      // Create order with requested payment method and pending payment status
       const order = await storage.createOrder({
         userId: req.session.userId!,
         addressId: addressId || null,
@@ -1220,7 +1224,7 @@ export async function registerRoutes(
         shippingCity,
         shippingEmirate,
         status: "pending",
-        paymentMethod: "cod",
+        paymentMethod: validPaymentMethod,
         paymentStatus: "pending",
       });
 
@@ -1345,19 +1349,6 @@ export async function registerRoutes(
         return res.status(400).json({ error: `Cannot change order from ${existingOrder.status} to ${nextStatus}` });
       }
 
-      // Prevent processing unpaid Stripe orders
-      if (
-        existingOrder.paymentMethod === ("stripe" as PaymentMethod) &&
-        existingOrder.paymentStatus !== ("paid" as PaymentStatus) &&
-        status !== ("cancelled" as OrderStatus)
-      ) {
-        return res.status(400).json({
-          error:
-            "Cannot process unpaid Stripe order. Payment must be completed first or order should be cancelled.",
-          isAwaitingPayment: true,
-        });
-      }
-
       const order = await storage.updateOrderStatus(id, status);
 
       if (!order) {
@@ -1375,6 +1366,50 @@ export async function registerRoutes(
       res.status(500).json({ error: "Failed to update order status" });
     }
   });
+
+  app.patch(
+    "/api/admin/orders/:id/payment-status",
+    requireAdmin,
+    async (req, res) => {
+      try {
+        const id = req.params.id as string;
+        const { paymentStatus } = req.body;
+
+        const validPaymentStatuses: PaymentStatus[] = [
+          "pending",
+          "paid",
+          "failed",
+          "refunded",
+        ];
+
+        if (!validPaymentStatuses.includes(paymentStatus as PaymentStatus)) {
+          return res.status(400).json({ error: "Invalid payment status" });
+        }
+
+        const existingOrder = await storage.getOrder(id);
+        if (!existingOrder) {
+          return res.status(404).json({ error: "Order not found" });
+        }
+
+        const updated = await storage.updateOrderPaymentStatus(
+          id,
+          paymentStatus as PaymentStatus,
+          undefined,
+          undefined,
+          false,
+        );
+
+        if (!updated) {
+          return res.status(404).json({ error: "Order not found" });
+        }
+
+        res.json(updated);
+      } catch (error) {
+        console.error("Update payment status error:", error);
+        res.status(500).json({ error: "Failed to update payment status" });
+      }
+    },
+  );
 
   app.get("/api/admin/users", requireAdmin, async (req, res) => {
     try {

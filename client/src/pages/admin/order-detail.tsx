@@ -26,7 +26,7 @@ import {
   Loader2,
 } from "lucide-react";
 import type { OrderWithItems } from "@shared/schema";
-import type { OrderStatus, PaymentStatus, PaymentMethod } from "@shared/schema";
+import type { OrderStatus, PaymentStatus } from "@shared/schema";
 import { getStatusColor } from "@/lib/utils";
 
 const ORDER_STATUSES: OrderStatus[] = [
@@ -37,6 +37,13 @@ const ORDER_STATUSES: OrderStatus[] = [
   "cancelled",
   "returning",
   "returned",
+  "refunded",
+];
+
+const PAYMENT_STATUSES: PaymentStatus[] = [
+  "pending",
+  "paid",
+  "failed",
   "refunded",
 ];
 
@@ -62,6 +69,29 @@ export default function AdminOrderDetail() {
     },
     onSuccess: () => {
       toast({ title: "Order status updated" });
+      queryClient.invalidateQueries({ queryKey: ["/api/orders", orderId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/orders"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updatePaymentStatusMutation = useMutation({
+    mutationFn: async (paymentStatus: PaymentStatus) => {
+      const res = await apiRequest(
+        "PATCH",
+        `/api/admin/orders/${orderId}/payment-status`,
+        { paymentStatus },
+      );
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Payment status updated" });
       queryClient.invalidateQueries({ queryKey: ["/api/orders", orderId] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/orders"] });
     },
@@ -293,13 +323,7 @@ export default function AdminOrderDetail() {
 
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Payment Method</span>
-                  <Badge
-                    variant={
-                      order.paymentMethod === "stripe" ? "default" : "outline"
-                    }
-                  >
-                    {order.paymentMethod === "stripe" ? "💳 Stripe" : "💵 COD"}
-                  </Badge>
+                  <Badge variant="default">Online</Badge>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -312,6 +336,37 @@ export default function AdminOrderDetail() {
                     {order.paymentStatus.charAt(0).toUpperCase() +
                       order.paymentStatus.slice(1)}
                   </Badge>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">
+                    Update Payment Status
+                  </label>
+                  <Select
+                    value={order.paymentStatus}
+                    onValueChange={(value) =>
+                      updatePaymentStatusMutation.mutate(value as PaymentStatus)
+                    }
+                    disabled={updatePaymentStatusMutation.isPending}
+                  >
+                    <SelectTrigger data-testid="select-payment-status">
+                      {updatePaymentStatusMutation.isPending ? (
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Updating...
+                        </div>
+                      ) : (
+                        <SelectValue />
+                      )}
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAYMENT_STATUSES.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {(order.status === "returning" || order.status === "returned" || order.status === "refunded") && order.returnReason && (

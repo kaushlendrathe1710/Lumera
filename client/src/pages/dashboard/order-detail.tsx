@@ -26,7 +26,6 @@ import {
   Download,
   FileText,
   Calendar,
-  XCircle,
   RotateCcw,
   Star,
 } from "lucide-react";
@@ -39,15 +38,6 @@ import type {
   PaymentStatus,
 } from "@shared/schema";
 import { getStatusColor } from "@/lib/utils";
-
-const CANCELLATION_REASONS = [
-  "No longer required",
-  "Found a cheaper price elsewhere",
-  "Ordered by mistake",
-  "Delivery time is too long",
-  "Want to change shipping address",
-  "Other",
-];
 
 const RETURN_REASONS = [
   "Product damaged or defective",
@@ -68,60 +58,9 @@ export default function CustomerOrderDetail() {
   });
 
   const { toast } = useToast();
-  const [showCancelDialog, setShowCancelDialog] = useState(false);
-  const [cancelReason, setCancelReason] = useState("");
-  const [otherReason, setOtherReason] = useState("");
   const [showReturnDialog, setShowReturnDialog] = useState(false);
   const [returnReason, setReturnReason] = useState("");
   const [returnOtherReason, setReturnOtherReason] = useState("");
-
-  const cancelOrderMutation = useMutation({
-    mutationFn: async (reason: string) => {
-      const res = await apiRequest("PATCH", `/api/orders/${orderId}/cancel`, {
-        reason,
-      });
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/orders", orderId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/orders/my-orders"] });
-      setShowCancelDialog(false);
-      setCancelReason("");
-      setOtherReason("");
-      toast({ title: "Order cancelled successfully" });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to cancel order",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const retryPaymentMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest(
-        "POST",
-        `/api/orders/${orderId}/retry-payment`,
-        {},
-      );
-      return res.json();
-    },
-    onSuccess: (data: { url: string }) => {
-      // Redirect to Stripe checkout
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to retry payment",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
 
   const returnOrderMutation = useMutation({
     mutationFn: async (reason: string) => {
@@ -269,29 +208,6 @@ export default function CustomerOrderDetail() {
                 <Download className="h-4 w-4" /> Invoice
               </Button>
             )}
-            {order.paymentMethod === "stripe" &&
-              order.paymentStatus === "pending" && (
-                <Button
-                  className="gap-2"
-                  onClick={() => retryPaymentMutation.mutate()}
-                  disabled={retryPaymentMutation.isPending}
-                  data-testid="button-retry-payment"
-                >
-                  {retryPaymentMutation.isPending
-                    ? "Processing..."
-                    : "Complete Payment"}
-                </Button>
-              )}
-            {order.status === "pending" && (
-              <Button
-                variant="destructive"
-                className="gap-2"
-                onClick={() => setShowCancelDialog(true)}
-                data-testid="button-cancel-order"
-              >
-                <XCircle className="h-4 w-4" /> Cancel Order
-              </Button>
-            )}
             {order.status === "delivered" && canReturn && (
               <Button
                 variant="outline"
@@ -387,13 +303,8 @@ export default function CustomerOrderDetail() {
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Payment Method</p>
-                <Badge
-                  variant={
-                    order.paymentMethod === "stripe" ? "default" : "outline"
-                  }
-                  className="text-sm px-3 py-1"
-                >
-                  {order.paymentMethod === "stripe" ? "💳 Stripe" : "💵 COD"}
+                <Badge variant="default" className="text-sm px-3 py-1">
+                  Online
                 </Badge>
               </div>
               <div className="space-y-1">
@@ -545,13 +456,7 @@ export default function CustomerOrderDetail() {
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Payment Method</span>
-                  <Badge
-                    variant={
-                      order.paymentMethod === "stripe" ? "default" : "outline"
-                    }
-                  >
-                    {order.paymentMethod === "stripe" ? "💳 Stripe" : "💵 COD"}
-                  </Badge>
+                  <Badge variant="default">Online</Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Payment Status</span>
@@ -564,100 +469,11 @@ export default function CustomerOrderDetail() {
                       order.paymentStatus.slice(1)}
                   </Badge>
                 </div>
-                {order.paymentMethod === "stripe" &&
-                  order.paymentStatus === "pending" && (
-                    <div className="pt-2">
-                      <Button
-                        className="w-full gap-2"
-                        onClick={() => retryPaymentMutation.mutate()}
-                        disabled={retryPaymentMutation.isPending}
-                        data-testid="button-retry-payment-card"
-                      >
-                        {retryPaymentMutation.isPending
-                          ? "Processing..."
-                          : "Complete Payment"}
-                      </Button>
-                      <p className="text-xs text-muted-foreground mt-2 text-center">
-                        Complete your payment to process this order
-                      </p>
-                    </div>
-                  )}
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
-      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Cancel Order</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            Please select a reason for cancellation:
-          </p>
-          <RadioGroup
-            value={cancelReason}
-            onValueChange={setCancelReason}
-            className="gap-3 mt-2"
-          >
-            {CANCELLATION_REASONS.map((reason) => (
-              <div key={reason} className="flex items-center gap-2">
-                <RadioGroupItem
-                  value={reason}
-                  id={`reason-${reason}`}
-                  data-testid={`radio-reason-${reason}`}
-                />
-                <Label htmlFor={`reason-${reason}`} className="cursor-pointer">
-                  {reason}
-                </Label>
-              </div>
-            ))}
-          </RadioGroup>
-          {cancelReason === "Other" && (
-            <div className="mt-3">
-              <Label htmlFor="otherReason">Other reason</Label>
-              <Textarea
-                id="otherReason"
-                value={otherReason}
-                onChange={(e) => setOtherReason(e.target.value)}
-                placeholder="Please describe the reason"
-                rows={4}
-              />
-            </div>
-          )}
-          <DialogFooter className="gap-2 mt-4">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowCancelDialog(false);
-                setCancelReason("");
-              }}
-              data-testid="button-cancel-dialog-close"
-            >
-              Go Back
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={
-                !cancelReason ||
-                (cancelReason === "Other" && !otherReason.trim()) ||
-                cancelOrderMutation.isPending
-              }
-              onClick={() => {
-                const reasonToSend =
-                  cancelReason === "Other" ? otherReason.trim() : cancelReason;
-                cancelOrderMutation.mutate(reasonToSend);
-              }}
-              data-testid="button-confirm-cancel"
-            >
-              {cancelOrderMutation.isPending
-                ? "Cancelling..."
-                : "Confirm Cancellation"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       <Dialog open={showReturnDialog} onOpenChange={setShowReturnDialog}>
         <DialogContent>
           <DialogHeader>

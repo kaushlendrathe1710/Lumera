@@ -20,7 +20,7 @@ export default function Checkout() {
   const { toast } = useToast();
 
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "cod">("card");
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   // Shipping is free site-wide
   const shippingCost = 0;
@@ -65,41 +65,6 @@ export default function Checkout() {
     },
   });
 
-  // Stripe Payment Mutation
-  const stripeCheckoutMutation = useMutation({
-    mutationFn: async () => {
-      if (!selectedAddress) {
-        throw new Error("Please select a delivery address");
-      }
-      const res = await apiRequest("POST", "/api/stripe/create-checkout-session", {
-        addressId: selectedAddress.id,
-        shippingName: user?.name || "",
-        shippingPhone: user?.phoneNumber || "",
-        shippingAddress: `${selectedAddress.addressLine1}, ${selectedAddress.addressLine2 || ''}`.trim(),
-        shippingCity: selectedAddress.city,
-        shippingEmirate: selectedAddress.stateRegion,
-        items: items.map((item) => ({
-          productId: item.product.id,
-          quantity: item.quantity,
-        })),
-        totalAmount: grandTotal.toFixed(2),
-      });
-      return res.json();
-    },
-    onSuccess: (data) => {
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Payment Error",
-        description: error.message || "Failed to initialize payment",
-        variant: "destructive",
-      });
-    },
-  });
-
   const validateForm = (): boolean => {
     if (!selectedAddress) {
       toast({
@@ -138,14 +103,10 @@ export default function Checkout() {
       return;
     }
 
-    if (paymentMethod === "card") {
-      stripeCheckoutMutation.mutate();
-    } else {
-      createOrderMutation.mutate();
-    }
+    createOrderMutation.mutate();
   };
 
-  const isSubmitting = createOrderMutation.isPending || stripeCheckoutMutation.isPending;
+  const isSubmitting = createOrderMutation.isPending || isProcessingPayment;
 
   if (items.length === 0) {
     return (
@@ -310,13 +271,52 @@ export default function Checkout() {
 
                   <Button
                     type="button"
-                    onClick={(e) => {
+                    onClick={async (e) => {
                       e.preventDefault();
-                      const defaultPaymentLink = "https://pay.ziina.com/lumera/yQHO58xQW";
+                      if (!selectedAddress) return;
+
                       // Use first available product payment link, otherwise fallback to default
-                      const productPaymentLink = items.map(i => i.product.paymentLink).find(Boolean);
+                      const defaultPaymentLink = "https://pay.ziina.com/lumera/yQHO58xQW";
+                      const productPaymentLink = items.map((i) => i.product.paymentLink).find(Boolean);
                       const redirectUrl = productPaymentLink || defaultPaymentLink;
-                      window.location.href = redirectUrl;
+
+                      try {
+                        setIsProcessingPayment(true);
+
+                        // Create order with pending status first, then redirect to payment link
+                        const res = await apiRequest("POST", "/api/orders", {
+                          addressId: selectedAddress.id,
+                          shippingName: user?.name || "",
+                          shippingPhone: user?.phoneNumber || "",
+                          shippingAddress: `${selectedAddress.addressLine1}, ${selectedAddress.addressLine2 || ''}`.trim(),
+                          shippingCity: selectedAddress.city,
+                          shippingEmirate: selectedAddress.stateRegion,
+                          items: items.map((item) => ({
+                            productId: item.product.id,
+                            quantity: item.quantity,
+                          })),
+                          totalAmount: grandTotal.toFixed(2),
+                          paymentMethod: "stripe",
+                        });
+
+                        const data = await res.json();
+
+                        // Redirect user to external payment page after creating pending order
+                        if (redirectUrl) {
+                          window.location.href = redirectUrl;
+                        } else if (data && data.id) {
+                          // Fallback: go to order confirmation page if no external link
+                          setLocation(`/order-confirmation/${data.id}`);
+                        }
+                      } catch (err: any) {
+                        toast({
+                          title: "Payment Error",
+                          description: err?.message || "Failed to initiate payment",
+                          variant: "destructive",
+                        });
+                      } finally {
+                        setIsProcessingPayment(false);
+                      }
                     }}
                     className="w-full"
                     size="lg"
@@ -330,13 +330,11 @@ export default function Checkout() {
                       </>
                     ) : !selectedAddress ? (
                       "Select a delivery address"
-                    ) : paymentMethod === "card" ? (
+                    ) : (
                       <>
                         <Lock className="h-4 w-4 mr-2" />
                         Pay {grandTotal.toFixed(2)} AED
                       </>
-                    ) : (
-                      "Place Order (COD)"
                     )}
                   </Button>
 

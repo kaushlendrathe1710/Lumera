@@ -139,8 +139,8 @@ export default function CustomerOrders() {
                         <div className="space-y-1.5">
                           <div className="flex items-center gap-1.5 justify-end">
                             <span className="text-xs text-muted-foreground">Payment:</span>
-                            <Badge variant={order.paymentMethod === "stripe" ? "default" : "outline"} className="text-xs">
-                              {order.paymentMethod === "stripe" ? "Stripe" : "COD"}
+                            <Badge variant="default" className="text-xs">
+                              Online
                             </Badge>
                           </div>
 
