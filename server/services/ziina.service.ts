@@ -44,7 +44,7 @@ export interface CreateZiinaTransferInput {
 }
 
 function getZiinaApiToken(): string {
-  const token = process.env.ZIINA_API_KEY || process.env.ZINNA_API_TOKEN;
+  const token = process.env.ZIINA_API_TOKEN;
   if (!token) {
     throw new Error("ZIINA API token is not configured");
   }
@@ -52,7 +52,7 @@ function getZiinaApiToken(): string {
 }
 
 function getZiinaWebhookSecret(): string {
-  const secret = process.env.ZIINA_WEBHOOK_SECRET || process.env.ZINNA_WEBHOOK_SECRET;
+    const secret = process.env.WEBHOOK_SECRET;
   if (!secret) {
     throw new Error("ZIINA webhook secret is not configured");
   }
