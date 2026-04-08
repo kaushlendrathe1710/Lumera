@@ -1,51 +1,59 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Loader2, AlertCircle, ShoppingBag } from "lucide-react";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { useCart } from "@/lib/cart";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Nav } from "@/components/nav";
 
 export default function PaymentSuccess() {
-  const [, setLocation] = useLocation();
   const { clearCart } = useCart();
   const [order, setOrder] = useState<any>(null);
 
   const searchParams = new URLSearchParams(window.location.search);
-  const sessionId = searchParams.get("session_id");
+  const orderId = searchParams.get("orderId");
 
   const verifyPaymentMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/stripe/verify-payment", {
-        sessionId,
-      });
+      if (!orderId) {
+        throw new Error("Order ID not found");
+      }
+      const res = await apiRequest("GET", `/api/payments/status/${orderId}`);
       return res.json();
     },
     onSuccess: (data) => {
-      clearCart();
-      queryClient.invalidateQueries({ queryKey: ["/api/orders/my-orders"] });
       setOrder(data.order);
+      if (data?.paymentStatus === "paid") {
+        clearCart();
+        queryClient.invalidateQueries({ queryKey: ["/api/orders/my-orders"] });
+      }
     },
   });
 
   useEffect(() => {
-    if (sessionId) {
-      verifyPaymentMutation.mutate();
+    if (!orderId) {
+      return;
     }
-  }, [sessionId]);
 
-  if (!sessionId) {
+    verifyPaymentMutation.mutate();
+    const pollId = window.setInterval(() => {
+      verifyPaymentMutation.mutate();
+    }, 3000);
+
+    return () => window.clearInterval(pollId);
+  }, [orderId]);
+
+  if (!orderId) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="max-w-md w-full mx-4">
           <CardContent className="pt-6 text-center">
             <AlertCircle className="h-16 w-16 text-destructive mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-foreground mb-2">Invalid Session</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-2">Invalid Payment Request</h1>
             <p className="text-muted-foreground mb-6">
-              No payment session found. Please try again.
+              No order identifier found. Please try checkout again.
             </p>
             <Link href="/checkout">
               <Button>Return to Checkout</Button>
@@ -56,15 +64,15 @@ export default function PaymentSuccess() {
     );
   }
 
-  if (verifyPaymentMutation.isPending) {
+  if (verifyPaymentMutation.isPending || !order) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="max-w-md w-full mx-4">
           <CardContent className="pt-6 text-center">
             <Loader2 className="h-16 w-16 text-primary mx-auto mb-4 animate-spin" />
-            <h1 className="text-2xl font-bold text-foreground mb-2">Verifying Payment...</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-2">Processing Payment...</h1>
             <p className="text-muted-foreground">
-              Please wait while we confirm your payment.
+              Please wait while we confirm payment status with Ziina.
             </p>
           </CardContent>
         </Card>
@@ -90,6 +98,25 @@ export default function PaymentSuccess() {
                 <Button variant="outline" className="w-full">Return Home</Button>
               </Link>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (order?.paymentStatus !== "paid") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="max-w-md w-full mx-4">
+          <CardContent className="pt-6 text-center">
+            <Loader2 className="h-16 w-16 text-primary mx-auto mb-4 animate-spin" />
+            <h1 className="text-2xl font-bold text-foreground mb-2">Awaiting Confirmation</h1>
+            <p className="text-muted-foreground mb-6">
+              Redirect received. We only confirm success after webhook verification.
+            </p>
+            <Link href="/dashboard/orders">
+              <Button variant="outline" className="w-full">View My Orders</Button>
+            </Link>
           </CardContent>
         </Card>
       </div>

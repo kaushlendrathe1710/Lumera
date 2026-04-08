@@ -52,8 +52,8 @@ export interface IStorage {
   clearCart(userId: string): Promise<void>;
 
   getOrder(id: string): Promise<OrderWithItems | undefined>;
-  getOrderByStripeSession(sessionId: string): Promise<Order | undefined>;
-  findUnpaidStripeOrder(userId: string): Promise<Order | undefined>;
+  getOrderByZiinaPaymentIntentId(paymentIntentId: string): Promise<Order | undefined>;
+  findUnpaidZiinaOrder(userId: string): Promise<Order | undefined>;
   getUserOrders(userId: string, statusFilter?: string): Promise<OrderWithItems[]>;
   getAllOrders(): Promise<Order[]>;
   createOrder(order: InsertOrder): Promise<Order>;
@@ -76,8 +76,8 @@ export interface IStorage {
   updateOrderPaymentStatus(
     orderId: string,
     paymentStatus: PaymentStatus,
-    stripeSessionId?: string,
-    stripePaymentIntentId?: string,
+    ziinaPaymentIntentId?: string,
+    webhookPayload?: string,
     syncOrderStatus?: boolean,
   ): Promise<Order | undefined>;
   createOrderItem(item: InsertOrderItem): Promise<OrderItem>;
@@ -348,18 +348,18 @@ export class DatabaseStorage implements IStorage {
     return order as OrderWithItems | undefined;
   }
 
-  async getOrderByStripeSession(sessionId: string): Promise<Order | undefined> {
+  async getOrderByZiinaPaymentIntentId(paymentIntentId: string): Promise<Order | undefined> {
     const [order] = await db.select().from(orders)
-      .where(eq(orders.stripeSessionId, sessionId));
+      .where(eq(orders.ziinaPaymentIntentId, paymentIntentId));
     return order || undefined;
   }
 
-  async findUnpaidStripeOrder(userId: string): Promise<Order | undefined> {
-    // Find the most recent unpaid Stripe order for this user
+  async findUnpaidZiinaOrder(userId: string): Promise<Order | undefined> {
+    // Find the most recent unpaid Ziina order for this user
     const [order] = await db.select().from(orders)
       .where(and(
         eq(orders.userId, userId),
-        eq(orders.paymentMethod, 'stripe'),
+        eq(orders.paymentMethod, 'ziina'),
         eq(orders.paymentStatus, 'pending')
       ))
       .orderBy(desc(orders.createdAt))
@@ -424,7 +424,7 @@ export class DatabaseStorage implements IStorage {
   }): Promise<Order> {
     const orderNumber = `GH-${Date.now().toString(36).toUpperCase()}`;
 
-    // Create the order with pending status and stripe payment method
+    // Create the order with pending status and Ziina payment method
     // This order should NOT be processed by admin until paid
     const [order] = await db.insert(orders)
       .values({
@@ -438,7 +438,7 @@ export class DatabaseStorage implements IStorage {
         shippingCity: orderData.shippingCity,
         shippingEmirate: orderData.shippingEmirate,
         status: 'pending',
-        paymentMethod: 'stripe',
+        paymentMethod: 'ziina',
         paymentStatus: 'pending',
       })
       .returning();
@@ -493,8 +493,8 @@ export class DatabaseStorage implements IStorage {
   async updateOrderPaymentStatus(
     orderId: string,
     paymentStatus: PaymentStatus,
-    stripeSessionId?: string,
-    stripePaymentIntentId?: string,
+    ziinaPaymentIntentId?: string,
+    webhookPayload?: string,
     syncOrderStatus = true,
   ): Promise<Order | undefined> {
     const updateData: any = {
@@ -506,11 +506,11 @@ export class DatabaseStorage implements IStorage {
       updateData.status = (paymentStatus === 'paid' ? 'processing' : 'pending') as OrderStatus;
     }
 
-    if (stripeSessionId) {
-      updateData.stripeSessionId = stripeSessionId;
+    if (ziinaPaymentIntentId) {
+      updateData.ziinaPaymentIntentId = ziinaPaymentIntentId;
     }
-    if (stripePaymentIntentId) {
-      updateData.stripePaymentIntentId = stripePaymentIntentId;
+    if (webhookPayload) {
+      updateData.paymentWebhookPayload = webhookPayload;
     }
 
     const [order] = await db.update(orders)

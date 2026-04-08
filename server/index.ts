@@ -3,8 +3,9 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import { seedDatabase } from "./seed";
-import { WebhookHandlers } from "./webhookHandlers";
 import { verifySmtpConfig } from "./email";
+import { verifyZiinaWebhook } from "./middleware/verifyZiinaWebhook";
+import { handleZiinaWebhook } from "./controllers/webhook.controller";
 
 const app = express();
 app.set("trust proxy", 1);
@@ -19,35 +20,13 @@ declare module "http" {
 // Verify SMTP configuration on startup
 verifySmtpConfig();
 
-// IMPORTANT: Register Stripe webhook route BEFORE express.json()
-// Stripe webhooks require raw body for signature verification
+// IMPORTANT: Register Ziina webhook route BEFORE express.json()
+// Ziina webhooks require raw body for signature verification.
 app.post(
-  '/api/stripe/webhook',
-  express.raw({ type: 'application/json' }),
-  async (req, res) => {
-    const signature = req.headers['stripe-signature'];
-
-    if (!signature) {
-      console.error('Webhook error: Missing stripe-signature header');
-      return res.status(400).json({ error: 'Missing stripe-signature header' });
-    }
-
-    try {
-      const sig = Array.isArray(signature) ? signature[0] : signature;
-
-      if (!Buffer.isBuffer(req.body)) {
-        console.error('STRIPE WEBHOOK ERROR: req.body is not a Buffer');
-        return res.status(500).json({ error: 'Webhook processing error' });
-      }
-
-      await WebhookHandlers.processWebhook(req.body as Buffer, sig);
-
-      res.status(200).json({ received: true });
-    } catch (error: any) {
-      console.error('Webhook error:', error.message);
-      res.status(400).json({ error: 'Webhook processing error' });
-    }
-  }
+  "/api/webhooks/ziina",
+  express.raw({ type: "application/json" }),
+  verifyZiinaWebhook,
+  handleZiinaWebhook,
 );
 
 // Now apply JSON middleware for all other routes

@@ -275,16 +275,11 @@ export default function Checkout() {
                       e.preventDefault();
                       if (!selectedAddress) return;
 
-                      // Use first available product payment link, otherwise fallback to default
-                      const defaultPaymentLink = "https://pay.ziina.com/lumera/yQHO58xQW";
-                      const productPaymentLink = items.map((i) => i.product.paymentLink).find(Boolean);
-                      const redirectUrl = productPaymentLink || defaultPaymentLink;
-
                       try {
                         setIsProcessingPayment(true);
 
-                        // Create order with pending status first, then redirect to payment link
-                        const res = await apiRequest("POST", "/api/orders", {
+                        // Step 1: create pending order
+                        const orderRes = await apiRequest("POST", "/api/orders", {
                           addressId: selectedAddress.id,
                           shippingName: user?.name || "",
                           shippingPhone: user?.phoneNumber || "",
@@ -296,18 +291,20 @@ export default function Checkout() {
                             quantity: item.quantity,
                           })),
                           totalAmount: grandTotal.toFixed(2),
-                          paymentMethod: "stripe",
                         });
+                        const order = await orderRes.json();
 
-                        const data = await res.json();
+                        // Step 2: create Ziina payment intent for the order
+                        const paymentRes = await apiRequest("POST", "/api/payments/create", {
+                          orderId: order.id,
+                        });
+                        const paymentData = await paymentRes.json();
 
-                        // Redirect user to external payment page after creating pending order
-                        if (redirectUrl) {
-                          window.location.href = redirectUrl;
-                        } else if (data && data.id) {
-                          // Fallback: go to order confirmation page if no external link
-                          setLocation(`/order-confirmation/${data.id}`);
+                        if (!paymentData?.redirect_url) {
+                          throw new Error("Payment redirect URL not received");
                         }
+
+                        window.location.href = paymentData.redirect_url;
                       } catch (err: any) {
                         toast({
                           title: "Payment Error",

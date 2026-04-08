@@ -21,7 +21,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { registerS3Routes } from "./s3-routes";
-import { getStripeClient, getStripePublishableKey } from "./stripeClient";
+import { registerPaymentRoutes } from "./routes/payment.routes";
 import { canTransitionOrderStatus } from "./utils";
 
 declare module "express-session" {
@@ -97,6 +97,7 @@ export async function registerRoutes(
 
   // Register object storage routes for file uploads
   registerS3Routes(app);
+  registerPaymentRoutes(app, requireAuth);
 
   app.get("/api/auth/me", async (req, res) => {
     if (!req.session.userId) {
@@ -1209,11 +1210,7 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Invalid total amount" });
       }
 
-      // Determine payment method for this order (default to 'cod')
-      const requestedPaymentMethod = req.body.paymentMethod || "cod";
-      const validPaymentMethod = (requestedPaymentMethod as PaymentMethod) || ("cod" as PaymentMethod);
-
-      // Create order with requested payment method and pending payment status
+      // Ziina is the only supported payment method.
       const order = await storage.createOrder({
         userId: req.session.userId!,
         addressId: addressId || null,
@@ -1224,7 +1221,7 @@ export async function registerRoutes(
         shippingCity,
         shippingEmirate,
         status: "pending",
-        paymentMethod: validPaymentMethod,
+        paymentMethod: "ziina",
         paymentStatus: "pending",
       });
 
@@ -1251,8 +1248,6 @@ export async function registerRoutes(
           });
         }
       }
-
-      await storage.clearCart(req.session.userId!);
 
       const fullOrder = await storage.getOrder(order.id);
       res.json(fullOrder);
@@ -1315,11 +1310,11 @@ export async function registerRoutes(
     try {
       const orders = await storage.getAllOrders();
 
-      // Annotate unpaid Stripe orders to prevent processing them as COD
+      // Annotate unpaid Ziina orders to prevent premature processing.
       const annotatedOrders = orders.map((order) => ({
         ...order,
         isAwaitingPayment:
-          order.paymentMethod === ("stripe" as PaymentMethod) &&
+          order.paymentMethod === ("ziina" as PaymentMethod) &&
           order.paymentStatus !== ("paid" as PaymentStatus),
       }));
 
@@ -1557,346 +1552,6 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Update profile error:", error);
       res.status(500).json({ error: "Failed to update profile" });
-    }
-  });
-
-  // Stripe Routes
-  app.get("/api/stripe/publishable-key", (req, res) => {
-    try {
-      const publishableKey = getStripePublishableKey();
-      res.json({ publishableKey });
-    } catch (error) {
-      console.error("Get Stripe publishable key error:", error);
-      res.status(500).json({ error: "Failed to get Stripe key" });
-    }
-  });
-
-  app.post(
-    "/api/stripe/create-checkout-session",
-    requireAuth,
-    async (req, res) => {
-      try {
-        const {
-          items,
-          addressId,
-          shippingName,
-          shippingPhone,
-          shippingAddress,
-          shippingCity,
-          shippingEmirate,
-        } = req.body;
-
-        if (!items || !Array.isArray(items) || items.length === 0) {
-          return res.status(400).json({ error: "Cart items are required" });
-        }
-
-        if (!addressId) {
-          return res
-            .status(400)
-            .json({ error: "Delivery address is required" });
-        }
-
-        if (
-          !shippingName ||
-          !shippingPhone ||
-          !shippingAddress ||
-          !shippingCity ||
-          !shippingEmirate
-        ) {
-          return res
-            .status(400)
-            .json({ error: "All shipping fields are required" });
-        }
-
-        const stripe = getStripeClient();
-        const user = await storage.getUser(req.session.userId!);
-
-        if (!user) {
-          return res.status(401).json({ error: "User not found" });
-        }
-
-        // Build line items with discounted prices - compute subtotal server-side
-        const lineItems = [];
-        const orderItemsSnapshot = []; // Store price snapshot for order creation
-        let subtotal = 0;
-
-        for (const item of items) {
-          const product = await storage.getProduct(item.productId);
-          if (!product) {
-            return res
-              .status(400)
-              .json({ error: `Product ${item.productId} not found` });
-          }
-          if (item.quantity <= 0 || item.quantity > product.stock) {
-            return res
-              .status(400)
-              .json({ error: `Invalid quantity for ${product.name}` });
-          }
-
-          const originalPrice = parseFloat(product.price);
-          const discountPercent = product.discountPercent || 0;
-          const discountedPrice =
-            discountPercent > 0
-              ? originalPrice * (1 - discountPercent / 100)
-              : originalPrice;
-
-          subtotal += discountedPrice * item.quantity;
-
-          // Store snapshot of item with price at checkout time
-          orderItemsSnapshot.push({
-            productId: product.id,
-            productName: product.name,
-            productPrice: discountedPrice.toFixed(2),
-            quantity: item.quantity,
-          });
-
-          lineItems.push({
-            price_data: {
-              currency: "aed",
-              product_data: {
-                name: product.name,
-                description: product.description || undefined,
-                images: product.imageUrl ? [product.imageUrl] : undefined,
-              },
-              unit_amount: Math.round(discountedPrice * 100), // Convert to fils
-            },
-            quantity: item.quantity,
-          });
-        }
-
-        // Shipping is free site-wide
-        const shippingCost = 0;
-
-        // No shipping line item is added since shipping is free
-        const totalAmount = subtotal + shippingCost;
-
-        // Check if user has an existing unpaid Stripe order
-        // This prevents duplicate orders when user cancels and retries payment
-        let pendingOrder = await storage.findUnpaidStripeOrder(
-          req.session.userId!,
-        );
-
-        if (pendingOrder) {
-          console.log(
-            "Reusing existing unpaid order:",
-            pendingOrder.id,
-            "Order #:",
-            pendingOrder.orderNumber,
-          );
-
-          // Validate the order details match (optional but recommended)
-          const orderTotal = parseFloat(pendingOrder.totalAmount);
-          if (Math.abs(orderTotal - totalAmount) > 0.01) {
-            console.log("Order total changed, creating new order instead");
-            pendingOrder = undefined;
-          }
-        }
-
-        // Create new pending order only if no existing unpaid order found
-        if (!pendingOrder) {
-          pendingOrder = await storage.createPendingOrder({
-            userId: req.session.userId!,
-            addressId: addressId || null,
-            items: orderItemsSnapshot,
-            subtotal: subtotal.toFixed(2),
-            shippingCost: shippingCost.toFixed(2),
-            totalAmount: totalAmount.toFixed(2),
-            shippingName,
-            shippingPhone,
-            shippingAddress,
-            shippingCity,
-            shippingEmirate,
-          });
-
-          console.log(
-            "Created new pending order:",
-            pendingOrder.id,
-            "Order #:",
-            pendingOrder.orderNumber,
-          );
-        }
-
-        // Use APP_URL for Railway deployment, fallback to localhost for development
-        const baseUrl =
-          process.env.APP_URL || `http://localhost:${process.env.PORT || 5000}`;
-
-        // Only store the orderId in metadata (small identifier, not business data)
-        const session = await stripe.checkout.sessions.create({
-          payment_method_types: ["card"],
-          line_items: lineItems,
-          mode: "payment",
-          success_url: `${baseUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-          cancel_url: `${baseUrl}/dashboard/orders/${pendingOrder.id}`,
-          customer_email: user.email,
-          metadata: {
-            orderId: pendingOrder.id, // ONLY store identifier - not full data
-          },
-        });
-
-        // Update the order with the Stripe session ID
-        await storage.updateOrderPaymentStatus(
-          pendingOrder.id,
-          "pending",
-          session.id,
-        );
-
-        console.log(
-          "Stripe session created:",
-          session.id,
-          "for order:",
-          pendingOrder.id,
-        );
-
-        res.json({
-          sessionId: session.id,
-          url: session.url,
-          orderId: pendingOrder.id,
-          orderNumber: pendingOrder.orderNumber,
-        });
-      } catch (error: any) {
-        console.error("Create checkout session error:", error);
-        res.status(500).json({
-          error: error.message || "Failed to create checkout session",
-        });
-      }
-    },
-  );
-
-  // Retry payment for an existing unpaid Stripe order
-  app.post(
-    "/api/orders/:orderId/retry-payment",
-    requireAuth,
-    async (req, res) => {
-      try {
-        const orderId = req.params.orderId as string;
-
-        // Get the order
-        const order = await storage.getOrder(orderId);
-
-        if (!order) {
-          return res.status(404).json({ error: "Order not found" });
-        }
-
-        // Verify the order belongs to the current user
-        if (order.userId !== req.session.userId) {
-          return res.status(403).json({ error: "Unauthorized" });
-        }
-
-        // Ensure it's a Stripe order
-        if (order.paymentMethod !== ("stripe" as PaymentMethod)) {
-          return res
-            .status(400)
-            .json({ error: "This order is not a Stripe payment" });
-        }
-
-        // Ensure it's still pending
-        if (order.paymentStatus !== ("pending" as PaymentStatus)) {
-          return res
-            .status(400)
-            .json({ error: "This order has already been processed" });
-        }
-
-        const stripe = getStripeClient();
-        const user = await storage.getUser(req.session.userId!);
-
-        if (!user) {
-          return res.status(401).json({ error: "User not found" });
-        }
-
-        // Build line items from existing order items
-        const lineItems = [];
-
-        for (const item of order.orderItems) {
-          const price = parseFloat(item.productPrice);
-          lineItems.push({
-            price_data: {
-              currency: "aed",
-              product_data: {
-                name: item.productName,
-              },
-              unit_amount: Math.round(price * 100),
-            },
-            quantity: item.quantity,
-          });
-        }
-
-        const baseUrl =
-          process.env.APP_URL || `http://localhost:${process.env.PORT || 5000}`;
-
-        // Create new Stripe session for the existing order
-        const session = await stripe.checkout.sessions.create({
-          payment_method_types: ["card"],
-          line_items: lineItems,
-          mode: "payment",
-          success_url: `${baseUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-          cancel_url: `${baseUrl}/dashboard/orders/${order.id}`,
-          customer_email: user.email,
-          metadata: {
-            orderId: order.id,
-          },
-        });
-
-        // Update the order with the new Stripe session ID
-        await storage.updateOrderPaymentStatus(order.id, "pending", session.id);
-
-        console.log(
-          "Retry payment - new Stripe session:",
-          session.id,
-          "for order:",
-          order.id,
-        );
-
-        res.json({
-          sessionId: session.id,
-          url: session.url,
-          orderId: order.id,
-          orderNumber: order.orderNumber,
-        });
-      } catch (error: any) {
-        console.error("Retry payment error:", error);
-        res.status(500).json({
-          error: error.message || "Failed to retry payment",
-        });
-      }
-    },
-  );
-
-  // Simplified verify-payment endpoint - just retrieves the order
-  // Payment verification is now handled by webhooks
-  app.post("/api/stripe/verify-payment", requireAuth, async (req, res) => {
-    try {
-      const { sessionId } = req.body;
-
-      if (!sessionId) {
-        return res.status(400).json({ error: "Session ID required" });
-      }
-
-      // Find order by stripe session ID
-      const order = await storage.getOrderByStripeSession(sessionId);
-
-      if (!order) {
-        return res
-          .status(404)
-          .json({ error: "Order not found for this session" });
-      }
-
-      // Verify the order belongs to the current user
-      if (order.userId !== req.session.userId) {
-        return res.status(403).json({ error: "Unauthorized" });
-      }
-
-      // Get full order details
-      const fullOrder = await storage.getOrder(order.id);
-
-      res.json({
-        order: fullOrder,
-        alreadyProcessed: order.paymentStatus === ("paid" as PaymentStatus),
-      });
-    } catch (error: any) {
-      console.error("Verify payment error:", error);
-      res
-        .status(500)
-        .json({ error: error.message || "Failed to verify payment" });
     }
   });
 

@@ -6,7 +6,7 @@ import { z } from "zod";
 export const userRoleEnum = pgEnum("user_role", ["customer", "admin", "superadmin"]);
 export const orderStatusEnum = pgEnum("order_status", ["pending", "processing", "shipped", "delivered", "cancelled", "returning", "returned", "refunded"]);
 export const paymentStatusEnum = pgEnum("payment_status", ["pending", "paid", "failed", "refunded"]);
-export const paymentMethodEnum = pgEnum("payment_method", ["cod", "stripe"]);
+export const paymentMethodEnum = pgEnum("payment_method", ["stripe", "ziina"]);
 
 export const contactPlatformEnum = pgEnum("contact_platform", ["instagram", "phone", "tiktok", "email"]);
 
@@ -109,9 +109,9 @@ export const orders = pgTable("orders", {
   shippingAddress: text("shipping_address").notNull(),
   shippingCity: text("shipping_city").notNull(),
   shippingEmirate: text("shipping_emirate").notNull(),
-  stripePaymentIntentId: text("stripe_payment_intent_id"),
-  stripeSessionId: text("stripe_session_id"),
-  paymentMethod: paymentMethodEnum("payment_method").notNull().default("cod"),
+  ziinaPaymentIntentId: text("ziina_payment_intent_id"),
+  paymentWebhookPayload: text("payment_webhook_payload"),
+  paymentMethod: paymentMethodEnum("payment_method").notNull().default("ziina"),
   paymentStatus: paymentStatusEnum("payment_status").notNull().default("pending"),
   cancellationReason: text("cancellation_reason"),
   returnReason: text("return_reason"),
@@ -313,7 +313,7 @@ export const insertAddressSchema = createInsertSchema(addresses).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-  
+
 }).extend({
   addressLine1: z.string().min(5, "Address line 1 must be at least 5 characters"),
   addressLine2: z.string().optional(),
