@@ -52,7 +52,6 @@ export async function createZiinaPayment(req: Request, res: Response) {
       successUrl,
       cancelUrl,
       failureUrl: cancelUrl,
-      test: true,
       message: `Payment for order ${order.orderNumber}`,
     });
 
