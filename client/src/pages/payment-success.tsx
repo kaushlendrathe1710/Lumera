@@ -33,9 +33,7 @@ export default function PaymentSuccess() {
   });
 
   useEffect(() => {
-    if (!orderId) {
-      return;
-    }
+    if (!orderId || order?.paymentStatus === "paid") return;
 
     verifyPaymentMutation.mutate();
     const pollId = window.setInterval(() => {
@@ -43,7 +41,7 @@ export default function PaymentSuccess() {
     }, 3000);
 
     return () => window.clearInterval(pollId);
-  }, [orderId]);
+  }, [orderId, order?.paymentStatus]);
 
   if (!orderId) {
     return (
