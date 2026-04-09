@@ -3,10 +3,11 @@ import { Link } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Loader2, AlertCircle, ShoppingBag } from "lucide-react";
+import { CheckCircle, Loader2, AlertCircle, ShoppingBag, Download } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Nav } from "@/components/nav";
+import { getGuestOrderAccessToken, setGuestOrderAccessToken } from "@/lib/guest-order-access";
 
 export default function PaymentSuccess() {
   const { clearCart } = useCart();
@@ -14,13 +15,32 @@ export default function PaymentSuccess() {
 
   const searchParams = new URLSearchParams(window.location.search);
   const orderId = searchParams.get("orderId");
+  const accessFromQuery = searchParams.get("access");
+  const [guestAccessToken, setGuestAccessTokenState] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!orderId) {
+      return;
+    }
+
+    if (accessFromQuery) {
+      setGuestOrderAccessToken(orderId, accessFromQuery);
+      setGuestAccessTokenState(accessFromQuery);
+      return;
+    }
+
+    setGuestAccessTokenState(getGuestOrderAccessToken(orderId));
+  }, [orderId, accessFromQuery]);
 
   const verifyPaymentMutation = useMutation({
     mutationFn: async () => {
       if (!orderId) {
         throw new Error("Order ID not found");
       }
-      const res = await apiRequest("GET", `/api/payments/status/${orderId}`);
+      const accessQuery = guestAccessToken
+        ? `?access=${encodeURIComponent(guestAccessToken)}`
+        : "";
+      const res = await apiRequest("GET", `/api/payments/status/${orderId}${accessQuery}`);
       return res.json();
     },
     onSuccess: (data) => {
@@ -41,7 +61,11 @@ export default function PaymentSuccess() {
     }, 3000);
 
     return () => window.clearInterval(pollId);
-  }, [orderId, order?.paymentStatus]);
+  }, [orderId, order?.paymentStatus, guestAccessToken]);
+
+  const invoiceDownloadUrl = orderId
+    ? `/api/orders/${orderId}/invoice${guestAccessToken ? `?access=${encodeURIComponent(guestAccessToken)}` : ""}`
+    : null;
 
   if (!orderId) {
     return (
@@ -89,9 +113,6 @@ export default function PaymentSuccess() {
               {(verifyPaymentMutation.error as Error)?.message || "Unable to verify payment. Please contact support."}
             </p>
             <div className="space-y-2">
-              <Link href="/dashboard/orders">
-                <Button className="w-full">View My Orders</Button>
-              </Link>
               <Link href="/">
                 <Button variant="outline" className="w-full">Return Home</Button>
               </Link>
@@ -112,8 +133,8 @@ export default function PaymentSuccess() {
             <p className="text-muted-foreground mb-6">
               Redirect received. We only confirm success after webhook verification.
             </p>
-            <Link href="/dashboard/orders">
-              <Button variant="outline" className="w-full">View My Orders</Button>
+            <Link href="/checkout">
+              <Button variant="outline" className="w-full">Back to Checkout</Button>
             </Link>
           </CardContent>
         </Card>
@@ -141,30 +162,36 @@ export default function PaymentSuccess() {
               <div className="bg-muted/50 rounded-lg p-4 mb-6 text-left">
                 <p className="text-sm text-muted-foreground mb-1">Order Number</p>
                 <p className="font-bold text-lg text-foreground">{order.orderNumber}</p>
+                <p className="text-sm text-muted-foreground mt-3 mb-1">Payment Status</p>
+                <p className="font-semibold text-foreground">{order.paymentStatus}</p>
                 <p className="text-sm text-muted-foreground mt-3 mb-1">Total Paid</p>
                 <p className="font-bold text-lg text-primary">{parseFloat(order.totalAmount).toFixed(2)} AED</p>
               </div>
             )}
 
             <p className="text-sm text-muted-foreground mb-8">
-              A confirmation email will be sent to your registered email address.
-              You can track your order status in your dashboard.
+              Save your receipt now. You can revisit this page with your payment success URL.
             </p>
 
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               {order && (
-                <Link href={`/order-confirmation/${order.id}`}>
+                <Link
+                  href={`/order-confirmation/${order.id}${guestAccessToken ? `?access=${encodeURIComponent(guestAccessToken)}` : ""}`}
+                >
                   <Button className="w-full gap-2" data-testid="button-view-order">
                     <ShoppingBag className="h-4 w-4" />
                     View Order Details
                   </Button>
                 </Link>
               )}
-              <Link href="/dashboard/orders">
-                <Button variant="outline" className="w-full" data-testid="button-view-orders">
-                  View All Orders
-                </Button>
-              </Link>
+              {invoiceDownloadUrl && (
+                <a href={invoiceDownloadUrl}>
+                  <Button variant="outline" className="w-full gap-2" data-testid="button-download-pdf">
+                    <Download className="h-4 w-4" />
+                    Download Receipt PDF
+                  </Button>
+                </a>
+              )}
               <Link href="/products">
                 <Button variant="ghost" className="w-full" data-testid="button-continue-shopping">
                   Continue Shopping

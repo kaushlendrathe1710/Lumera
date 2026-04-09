@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -7,14 +7,13 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/lib/auth";
 import { CartProvider } from "@/lib/cart";
 import { WishlistProvider } from "@/lib/wishlist";
-import { ProtectedRoute, AdminRoute } from "@/components/protected-route";
+import { AdminRoute } from "@/components/protected-route";
 
 import Home from "@/pages/home";
 import Products from "@/pages/products";
 import ProductDetail from "@/pages/product-detail";
 import Cart from "@/pages/cart";
 import WishlistPage from "@/pages/wishlist";
-import DashboardWishlist from "@/pages/dashboard/wishlist";
 import Checkout from "@/pages/checkout";
 import OrderConfirmation from "@/pages/order-confirmation";
 import PaymentSuccess from "@/pages/payment-success";
@@ -22,18 +21,9 @@ import Login from "@/pages/login";
 import About from "@/pages/about";
 import Contact from "@/pages/contact";
 import Shipping from "@/pages/shipping";
-import Faq from "@/pages/faq";
 import Returns from "@/pages/returns";
 import Privacy from "@/pages/privacy";
 import NotFound from "@/pages/not-found";
-
-import CustomerDashboard from "@/pages/dashboard/index";
-import CustomerOrders from "@/pages/dashboard/orders";
-import CustomerOrderDetail from "@/pages/dashboard/order-detail";
-import CustomerProfile from "@/pages/dashboard/profile";
-import DashboardProducts from "@/pages/dashboard/products";
-import DashboardCart from "@/pages/dashboard/cart";
-import DashboardAddresses from "@/pages/dashboard/addresses";
 
 import AdminDashboard from "@/pages/admin/index";
 import AdminCategories from "@/pages/admin/categories";
@@ -61,70 +51,42 @@ function Router() {
       <Route path="/wishlist" component={WishlistPage} />
       <Route path="/login" component={Login} />
 
-      <Route path="/checkout">
-        <ProtectedRoute>
-          <Checkout />
-        </ProtectedRoute>
-      </Route>
+      <Route path="/checkout" component={Checkout} />
 
-      <Route path="/order-confirmation/:id">
-        <ProtectedRoute>
-          <OrderConfirmation />
-        </ProtectedRoute>
-      </Route>
+      <Route path="/order-confirmation/:id" component={OrderConfirmation} />
 
-      <Route path="/payment-success">
-        <ProtectedRoute>
-          <PaymentSuccess />
-        </ProtectedRoute>
-      </Route>
+      <Route path="/payment-success" component={PaymentSuccess} />
 
       <Route path="/dashboard">
-        <ProtectedRoute>
-          <CustomerDashboard />
-        </ProtectedRoute>
+        <Redirect to="/" />
       </Route>
 
       <Route path="/dashboard/orders">
-        <ProtectedRoute>
-          <CustomerOrders />
-        </ProtectedRoute>
+        <Redirect to="/" />
       </Route>
 
       <Route path="/dashboard/orders/:id">
-        <ProtectedRoute>
-          <CustomerOrderDetail />
-        </ProtectedRoute>
+        <Redirect to="/" />
       </Route>
 
       <Route path="/dashboard/profile">
-        <ProtectedRoute>
-          <CustomerProfile />
-        </ProtectedRoute>
+        <Redirect to="/" />
       </Route>
 
       <Route path="/dashboard/wishlist">
-        <ProtectedRoute>
-          <DashboardWishlist />
-        </ProtectedRoute>
+        <Redirect to="/" />
       </Route>
 
       <Route path="/dashboard/addresses">
-        <ProtectedRoute>
-          <DashboardAddresses />
-        </ProtectedRoute>
+        <Redirect to="/" />
       </Route>
 
       <Route path="/dashboard/products">
-        <ProtectedRoute>
-          <DashboardProducts />
-        </ProtectedRoute>
+        <Redirect to="/" />
       </Route>
 
       <Route path="/dashboard/cart">
-        <ProtectedRoute>
-          <DashboardCart />
-        </ProtectedRoute>
+        <Redirect to="/" />
       </Route>
 
       <Route path="/admin">

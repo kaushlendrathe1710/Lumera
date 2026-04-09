@@ -58,7 +58,7 @@ export interface IStorage {
   getAllOrders(): Promise<Order[]>;
   createOrder(order: InsertOrder): Promise<Order>;
   createPendingOrder(orderData: {
-    userId: string;
+    userId?: string | null;
     addressId?: string | null;
     items: Array<{ productId: string; productName: string; productPrice: string; quantity: number }>;
     subtotal: string;
@@ -69,6 +69,11 @@ export interface IStorage {
     shippingAddress: string;
     shippingCity: string;
     shippingEmirate: string;
+    guestAccessToken?: string;
+    guestName?: string;
+    guestEmail?: string;
+    guestPhone?: string;
+    guestAddress?: string;
   }): Promise<Order>;
   updateOrderStatus(id: string, status: OrderStatus, cancellationReason?: string | null): Promise<Order | undefined>;
   requestReturn(id: string, reason: string): Promise<Order | undefined>;
@@ -410,7 +415,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPendingOrder(orderData: {
-    userId: string;
+    userId?: string | null;
     addressId?: string | null;
     items: Array<{ productId: string; productName: string; productPrice: string; quantity: number }>;
     subtotal: string;
@@ -421,6 +426,11 @@ export class DatabaseStorage implements IStorage {
     shippingAddress: string;
     shippingCity: string;
     shippingEmirate: string;
+    guestAccessToken?: string;
+    guestName?: string;
+    guestEmail?: string;
+    guestPhone?: string;
+    guestAddress?: string;
   }): Promise<Order> {
     const orderNumber = `GH-${Date.now().toString(36).toUpperCase()}`;
 
@@ -429,8 +439,13 @@ export class DatabaseStorage implements IStorage {
     const [order] = await db.insert(orders)
       .values({
         orderNumber,
-        userId: orderData.userId,
+        userId: orderData.userId || null,
         addressId: orderData.addressId || null,
+        guestAccessToken: orderData.guestAccessToken,
+        guestName: orderData.guestName,
+        guestEmail: orderData.guestEmail,
+        guestPhone: orderData.guestPhone,
+        guestAddress: orderData.guestAddress,
         totalAmount: orderData.totalAmount,
         shippingName: orderData.shippingName,
         shippingPhone: orderData.shippingPhone,

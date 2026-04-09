@@ -120,10 +120,10 @@ export function Nav() {
               </Button>
             </Link>
             <div className="hidden md:block">
-              {isAuthenticated ? (
+              {isAuthenticated && (user?.role === "admin" || user?.role === "superadmin") ? (
                 <Link
                   className="bg-white py-1 px-2 text-black rounded-md hover:text-gray-500"
-                  href={user?.role === "customer" ? "/dashboard" : "/admin"}
+                  href="/admin"
                 >
                   Dashboard
                 </Link>
@@ -132,7 +132,7 @@ export function Nav() {
                   href="/login"
                   className="bg-white py-1 px-2 text-black rounded-md hover:text-gray-500"
                 >
-                  Sign in
+                  Admin login
                 </Link>
               )}
             </div>
@@ -200,10 +200,10 @@ export function Nav() {
             </nav>
 
             <div className="pt-4 border-t border-white/10">
-              {isAuthenticated ? (
+              {isAuthenticated && (user?.role === "admin" || user?.role === "superadmin") ? (
                 <Link
                   className="flex gap-2 items-center hover:text-gray-300"
-                  href={user?.role === "customer" ? "/dashboard" : "/admin"}
+                  href="/admin"
                 >
                   <User className="h-5 w-5" />
                   Dashboard
@@ -214,7 +214,7 @@ export function Nav() {
                   className="flex gap-2 items-center hover:text-gray-300"
                 >
                   <LogIn className="h-5 w-5" />
-                  Sign in
+                  Admin login
                 </Link>
               )}
             </div>

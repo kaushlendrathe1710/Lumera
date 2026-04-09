@@ -13,10 +13,15 @@ import { Nav } from "@/components/nav";
 export default function OrderConfirmation() {
   const [, params] = useRoute("/order-confirmation/:id");
   const orderId = params?.id;
+  const searchParams = new URLSearchParams(window.location.search);
+  const accessToken = searchParams.get("access");
+  const orderQueryUrl = orderId
+    ? `/api/orders/${orderId}${accessToken ? `?access=${encodeURIComponent(accessToken)}` : ""}`
+    : null;
 
   const { data: order, isLoading } = useQuery<OrderWithItems>({
-    queryKey: ["/api/orders", orderId],
-    enabled: !!orderId,
+    queryKey: [orderQueryUrl || ""],
+    enabled: !!orderQueryUrl,
   });
 
   if (isLoading) {
@@ -135,9 +140,9 @@ export default function OrderConfirmation() {
           </Card>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            <Link href="/dashboard" className="flex-1">
+            <Link href="/products" className="flex-1">
               <Button variant="outline" className="w-full gap-2" data-testid="link-view-orders">
-                View My Orders
+                Browse More Perfumes
               </Button>
             </Link>
             <Link href="/products" className="flex-1">

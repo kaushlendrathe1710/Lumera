@@ -2,14 +2,20 @@ import type { Request, Response } from "express";
 import { storage } from "../storage";
 import { createPaymentIntent } from "../services/ziina.service";
 
+function canAccessOrder(order: any, sessionUserId?: string, accessToken?: string): boolean {
+  if (sessionUserId && order.userId === sessionUserId) {
+    return true;
+  }
+  if (accessToken && order.guestAccessToken && accessToken === order.guestAccessToken) {
+    return true;
+  }
+  return false;
+}
+
 export async function createZiinaPayment(req: Request, res: Response) {
   try {
     const userId = req.session.userId;
-    const { orderId } = req.body as { orderId?: string };
-
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    const { orderId, accessToken } = req.body as { orderId?: string; accessToken?: string };
 
     if (!orderId) {
       return res.status(400).json({ error: "orderId is required" });
@@ -20,7 +26,7 @@ export async function createZiinaPayment(req: Request, res: Response) {
       return res.status(404).json({ error: "Order not found" });
     }
 
-    if (order.userId !== userId) {
+    if (!canAccessOrder(order, userId, accessToken)) {
       return res.status(403).json({ error: "Forbidden" });
     }
 
@@ -34,8 +40,11 @@ export async function createZiinaPayment(req: Request, res: Response) {
     }
 
     const baseUrl = process.env.APP_URL || `http://localhost:${process.env.PORT || 5000}`;
-    const successUrl = `${baseUrl}/payment-success?orderId=${order.id}`;
-    const cancelUrl = `${baseUrl}/dashboard/orders/${order.id}`;
+    const accessQuery = order.guestAccessToken
+      ? `&access=${encodeURIComponent(order.guestAccessToken)}`
+      : "";
+    const successUrl = `${baseUrl}/payment-success?orderId=${order.id}${accessQuery}`;
+    const cancelUrl = `${baseUrl}/checkout?orderId=${order.id}${accessQuery}`;
 
     const paymentIntent = await createPaymentIntent({
       amount,
@@ -74,17 +83,14 @@ export async function getZiinaPaymentStatus(req: Request, res: Response) {
   try {
     const userId = req.session.userId;
     const orderId = req.params.orderId as string;
-
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    const accessToken = req.query.access as string | undefined;
 
     const order = await storage.getOrder(orderId);
     if (!order) {
       return res.status(404).json({ error: "Order not found" });
     }
 
-    if (order.userId !== userId) {
+    if (!canAccessOrder(order, userId, accessToken)) {
       return res.status(403).json({ error: "Forbidden" });
     }
 

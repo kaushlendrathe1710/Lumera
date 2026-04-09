@@ -27,7 +27,6 @@ export default function Login() {
   const [name, setName] = useState("");
   const [countryId, setCountryId] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [isNewUser, setIsNewUser] = useState(false);
 
   const { data: countries } = useQuery<SupportedCountry[]>({
     queryKey: ["/api/countries"],
@@ -37,8 +36,9 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
-      const redirectTo = user.role === "customer" ? "/dashboard" : "/admin";
-      setLocation(redirectTo);
+      if (user.role === "admin" || user.role === "superadmin") {
+        setLocation("/admin");
+      }
     }
   }, [user, setLocation]);
 
@@ -65,8 +65,7 @@ export default function Login() {
       const res = await apiRequest("POST", "/api/auth/send-otp", { email });
       return res.json();
     },
-    onSuccess: (data) => {
-      setIsNewUser(data.isNewUser);
+    onSuccess: () => {
       setStep("otp");
       // Start 60-second cooldown
       setResendCooldown(60);
@@ -94,17 +93,12 @@ export default function Login() {
       return data;
     },
     onSuccess: async (data) => {
-      if (data.requiresRegistration) {
-        setStep("register");
-      } else {
-        toast({
-          title: "Welcome back!",
-          description: "You have been logged in successfully",
-        });
-        refetch();
-        const redirectTo = data.user.role === "customer" ? "/dashboard" : "/admin";
-        setLocation(redirectTo);
-      }
+      toast({
+        title: "Welcome back",
+        description: "Admin login successful",
+      });
+      await refetch();
+      setLocation("/admin");
     },
     onError: (error: Error) => {
       toast({
@@ -126,7 +120,7 @@ export default function Login() {
         description: "Welcome to Lumera!",
       });
       await refetch();
-      const redirectTo = data.user?.role === "admin" || data.user?.role === "superadmin" ? "/admin" : "/dashboard";
+      const redirectTo = data.user?.role === "admin" || data.user?.role === "superadmin" ? "/admin" : "/";
       window.location.href = redirectTo;
     },
     onError: (error: Error) => {
@@ -195,12 +189,12 @@ export default function Login() {
               <Mail className="h-8 w-8 text-primary" />
             </div>
             <CardTitle className="text-2xl font-serif">
-              {step === "email" && "Sign In"}
+              {step === "email" && "Admin Sign In"}
               {step === "otp" && "Verify Email"}
               {step === "register" && "Complete Registration"}
             </CardTitle>
             <CardDescription>
-              {step === "email" && "Enter your email to receive a one-time password"}
+              {step === "email" && "Admin access only. Buyers can checkout without login."}
               {step === "otp" && `We've sent a 6-digit code to ${email}`}
               {step === "register" && "Please provide your details to complete registration"}
             </CardDescription>

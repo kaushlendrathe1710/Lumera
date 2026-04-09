@@ -1,5 +1,6 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
+import { randomUUID } from "crypto";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import pg from "pg";
@@ -14,7 +15,6 @@ import {
   insertAddressSchema,
   type InsertAddress,
   type OrderStatus,
-  type PaymentStatus,
   type PaymentMethod,
   insertContactDetailSchema,
   updateContactDetailSchema,
@@ -32,6 +32,19 @@ declare module "express-session" {
 }
 
 const SUPER_ADMIN_EMAIL = "kaushlendra.k12@fms.edu";
+
+function isEligibleAdminUser(
+  user:
+    | { id: string; role: string; isRegistered: boolean }
+    | null
+    | undefined,
+): user is { id: string; role: "admin" | "superadmin"; isRegistered: true } {
+  if (!user) {
+    return false;
+  }
+  const isAdminRole = user.role === "admin" || user.role === "superadmin";
+  return isAdminRole && user.isRegistered;
+}
 
 function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (!req.session.userId) {
@@ -66,6 +79,74 @@ async function requireSuperAdmin(
   next();
 }
 
+const guestCheckoutWindowMs = 10 * 60 * 1000;
+const guestCheckoutMaxRequests = 20;
+const guestCheckoutRateLimit = new Map<string, { count: number; startedAt: number }>();
+
+function getClientIp(req: Request): string {
+  const forwarded = req.headers["x-forwarded-for"];
+  if (typeof forwarded === "string") {
+    return forwarded.split(",")[0]?.trim() || req.ip || "unknown";
+  }
+  return req.ip || "unknown";
+}
+
+function enforceGuestCheckoutRateLimit(req: Request, res: Response): boolean {
+  if (req.session.userId) {
+    return true;
+  }
+
+  const ip = getClientIp(req);
+  const now = Date.now();
+  const current = guestCheckoutRateLimit.get(ip);
+
+  if (!current || now - current.startedAt > guestCheckoutWindowMs) {
+    guestCheckoutRateLimit.set(ip, { count: 1, startedAt: now });
+    return true;
+  }
+
+  if (current.count >= guestCheckoutMaxRequests) {
+    res.status(429).json({ error: "Too many checkout attempts. Please try again shortly." });
+    return false;
+  }
+
+  current.count += 1;
+  guestCheckoutRateLimit.set(ip, current);
+  return true;
+}
+
+async function canAccessOrder(req: Request, order: { userId: string | null; guestAccessToken: string | null }) {
+  if (req.session.userId) {
+    const user = await storage.getUser(req.session.userId);
+    if (user?.role === "admin" || user?.role === "superadmin") {
+      return true;
+    }
+    if (order.userId && order.userId === req.session.userId) {
+      return true;
+    }
+  }
+
+  const token = (req.query.access as string | undefined) || (req.body?.accessToken as string | undefined);
+  return !!token && !!order.guestAccessToken && token === order.guestAccessToken;
+}
+
+const guestCheckoutSchema = z.object({
+  items: z.array(
+    z.object({
+      productId: z.string().min(1),
+      quantity: z.number().int().min(1).max(50),
+    }),
+  ).min(1),
+  totalAmount: z.string().regex(/^\d+(\.\d{1,2})?$/),
+  addressId: z.string().nullable().optional(),
+  shippingName: z.string().min(2).max(120),
+  shippingPhone: z.string().min(6).max(30),
+  shippingAddress: z.string().min(5).max(250),
+  shippingCity: z.string().min(2).max(100),
+  shippingEmirate: z.string().min(2).max(100),
+  guestEmail: z.string().email(),
+});
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express,
@@ -97,7 +178,7 @@ export async function registerRoutes(
 
   // Register object storage routes for file uploads
   registerS3Routes(app);
-  registerPaymentRoutes(app, requireAuth);
+  registerPaymentRoutes(app);
 
   app.get("/api/auth/me", async (req, res) => {
     if (!req.session.userId) {
@@ -120,7 +201,10 @@ export async function registerRoutes(
 
       const normalizedEmail = email.toLowerCase().trim();
       const existingUser = await storage.getUserByEmail(normalizedEmail);
-      const isNewUser = !existingUser;
+
+      if (!isEligibleAdminUser(existingUser)) {
+        return res.status(401).json({ error: "Wrong admin credentials or email" });
+      }
 
       const otp = generateOtp();
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
@@ -147,7 +231,7 @@ export async function registerRoutes(
 
       req.session.pendingEmail = normalizedEmail;
 
-      res.json({ success: true, isNewUser });
+      res.json({ success: true });
     } catch (error) {
       console.error("Send OTP error:", error);
       res.status(500).json({ error: "Failed to send OTP" });
@@ -162,6 +246,10 @@ export async function registerRoutes(
       }
 
       const normalizedEmail = email.toLowerCase().trim();
+      if (req.session.pendingEmail && req.session.pendingEmail !== normalizedEmail) {
+        return res.status(400).json({ error: "Invalid login attempt" });
+      }
+
       const token = await storage.getValidOtpToken(normalizedEmail, otp);
 
       if (!token) {
@@ -170,58 +258,13 @@ export async function registerRoutes(
 
       await storage.deleteOtpTokens(normalizedEmail);
 
-      let user = await storage.getUserByEmail(normalizedEmail);
-
-      if (!user) {
-        if (normalizedEmail === SUPER_ADMIN_EMAIL) {
-          user = await storage.createUser({
-            email: normalizedEmail,
-            name: "Super Admin",
-            role: "superadmin",
-            isRegistered: true,
-          });
-          req.session.userId = user.id;
-          return req.session.save((err) => {
-            if (err) {
-              console.error("Session save error:", err);
-              return res
-                .status(500)
-                .json({ error: "Login failed. Please try again." });
-            }
-            res.json({ success: true, user, requiresRegistration: false });
-          });
-        }
-        user = await storage.createUser({
-          email: normalizedEmail,
-          role: "customer",
-          isRegistered: false,
-        });
-        req.session.userId = user.id;
-        return req.session.save((err) => {
-          if (err) {
-            console.error("Session save error:", err);
-            return res
-              .status(500)
-              .json({ error: "Login failed. Please try again." });
-          }
-          res.json({ success: true, user, requiresRegistration: true });
-        });
-      }
-
-      if (!user.isRegistered && user.role === "customer") {
-        req.session.userId = user.id;
-        return req.session.save((err) => {
-          if (err) {
-            console.error("Session save error:", err);
-            return res
-              .status(500)
-              .json({ error: "Login failed. Please try again." });
-          }
-          res.json({ success: true, user, requiresRegistration: true });
-        });
+      const user = await storage.getUserByEmail(normalizedEmail);
+      if (!isEligibleAdminUser(user)) {
+        return res.status(401).json({ error: "Wrong admin credentials or email" });
       }
 
       req.session.userId = user.id;
+      delete req.session.pendingEmail;
       req.session.save((err) => {
         if (err) {
           console.error("Session save error:", err);
@@ -229,7 +272,7 @@ export async function registerRoutes(
             .status(500)
             .json({ error: "Login failed. Please try again." });
         }
-        res.json({ success: true, user, requiresRegistration: false });
+        res.json({ success: true, user });
       });
     } catch (error) {
       console.error("Verify OTP error:", error);
@@ -1099,15 +1142,15 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/orders/:id", requireAuth, async (req, res) => {
+  app.get("/api/orders/:id", async (req, res) => {
     try {
       const id = req.params.id as string;
       const order = await storage.getOrder(id);
       if (!order) {
         return res.status(404).json({ error: "Order not found" });
       }
-      const user = await storage.getUser(req.session.userId!);
-      if (order.userId !== req.session.userId && user?.role === "customer") {
+      const allowed = await canAccessOrder(req, order);
+      if (!allowed) {
         return res.status(403).json({ error: "Forbidden" });
       }
       res.json(order);
@@ -1173,91 +1216,95 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/orders", requireAuth, async (req, res) => {
+  app.post("/api/orders", async (req, res) => {
     try {
-      const {
-        items,
-        totalAmount,
-        addressId,
-        shippingName,
-        shippingPhone,
-        shippingAddress,
-        shippingCity,
-        shippingEmirate,
-      } = req.body;
-
-      if (!items || !Array.isArray(items) || items.length === 0) {
-        return res.status(400).json({ error: "Order items are required" });
+      if (!enforceGuestCheckoutRateLimit(req, res)) {
+        return;
       }
 
-      if (!addressId) {
-        return res.status(400).json({ error: "Delivery address is required" });
-      }
+      const payload = guestCheckoutSchema.parse(req.body);
 
-      if (
-        !shippingName ||
-        !shippingPhone ||
-        !shippingAddress ||
-        !shippingCity ||
-        !shippingEmirate
-      ) {
-        return res
-          .status(400)
-          .json({ error: "All shipping fields are required" });
-      }
+      const productsToOrder = await Promise.all(
+        payload.items.map(async (item) => {
+          const product = await storage.getProduct(item.productId);
+          if (!product) {
+            throw new Error(`Product ${item.productId} not found`);
+          }
+          if (product.stock < item.quantity) {
+            throw new Error(`Insufficient stock for ${product.name}`);
+          }
 
-      if (!totalAmount || isNaN(parseFloat(totalAmount))) {
-        return res.status(400).json({ error: "Invalid total amount" });
+          const basePrice = parseFloat(product.price);
+          const discountPercent = product.discountPercent || 0;
+          const discountedPrice =
+            discountPercent > 0 ? basePrice * (1 - discountPercent / 100) : basePrice;
+
+          return {
+            product,
+            quantity: item.quantity,
+            discountedPrice,
+          };
+        }),
+      );
+
+      const computedTotal = productsToOrder.reduce(
+        (sum, item) => sum + item.discountedPrice * item.quantity,
+        0,
+      );
+      const submittedTotal = parseFloat(payload.totalAmount);
+      if (Math.abs(computedTotal - submittedTotal) > 0.01) {
+        return res.status(400).json({ error: "Order total does not match product pricing" });
       }
 
       // Ziina is the only supported payment method.
+      const guestAccessToken = req.session.userId ? null : randomUUID();
       const order = await storage.createOrder({
-        userId: req.session.userId!,
-        addressId: addressId || null,
-        totalAmount,
-        shippingName,
-        shippingPhone,
-        shippingAddress,
-        shippingCity,
-        shippingEmirate,
+        userId: req.session.userId || null,
+        addressId: payload.addressId || null,
+        guestAccessToken,
+        guestName: payload.shippingName,
+        guestEmail: payload.guestEmail,
+        guestPhone: payload.shippingPhone,
+        guestAddress: `${payload.shippingAddress}, ${payload.shippingCity}, ${payload.shippingEmirate}`,
+        totalAmount: computedTotal.toFixed(2),
+        shippingName: payload.shippingName,
+        shippingPhone: payload.shippingPhone,
+        shippingAddress: payload.shippingAddress,
+        shippingCity: payload.shippingCity,
+        shippingEmirate: payload.shippingEmirate,
         status: "pending",
         paymentMethod: "ziina",
         paymentStatus: "pending",
       });
 
-      for (const item of items) {
-        const product = await storage.getProduct(item.productId);
-        if (product) {
-          // Calculate discounted price - customers pay the discounted price, not original
-          const originalPrice = parseFloat(product.price);
-          const discountPercent = product.discountPercent || 0;
-          const discountedPrice =
-            discountPercent > 0
-              ? originalPrice * (1 - discountPercent / 100)
-              : originalPrice;
-
-          await storage.createOrderItem({
-            orderId: order.id,
-            productId: item.productId,
-            productName: product.name,
-            productPrice: discountedPrice.toFixed(2), // Store discounted price
-            quantity: item.quantity,
-          });
-          await storage.updateProduct(product.id, {
-            stock: Math.max(0, product.stock - item.quantity),
-          });
-        }
+      for (const item of productsToOrder) {
+        await storage.createOrderItem({
+          orderId: order.id,
+          productId: item.product.id,
+          productName: item.product.name,
+          productPrice: item.discountedPrice.toFixed(2),
+          quantity: item.quantity,
+        });
+        await storage.updateProduct(item.product.id, {
+          stock: Math.max(0, item.product.stock - item.quantity),
+        });
       }
 
       const fullOrder = await storage.getOrder(order.id);
       res.json(fullOrder);
     } catch (error) {
       console.error("Create order error:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors[0]?.message || "Invalid checkout details" });
+      }
+      if (error instanceof Error) {
+        return res.status(400).json({ error: error.message });
+      }
       res.status(500).json({ error: "Failed to create order" });
     }
   });
 
-  app.get("/api/orders/:id/invoice", requireAuth, async (req, res) => {
+  app.get("/api/orders/:id/invoice", async (req, res) => {
     try {
       const id = req.params.id as string;
       const order = await storage.getOrder(id);
@@ -1269,16 +1316,29 @@ export async function registerRoutes(
           .status(400)
           .json({ error: "Cannot generate invoice for cancelled orders" });
       }
-      const user = await storage.getUser(req.session.userId!);
-      if (order.userId !== req.session.userId && user?.role === "customer") {
+
+      const allowed = await canAccessOrder(req, order);
+      if (!allowed) {
         return res.status(403).json({ error: "Forbidden" });
       }
+
+      const user = order.userId ? await storage.getUser(order.userId) : undefined;
+      const fallbackUser = {
+        id: "guest-user",
+        email: order.guestEmail || "guest@lumera.local",
+        name: order.guestName || order.shippingName,
+        countryId: null,
+        phoneNumber: order.guestPhone || order.shippingPhone,
+        role: "customer" as const,
+        isRegistered: false,
+        createdAt: new Date(),
+      };
 
       console.log(`Generating invoice for order ${order.orderNumber}`);
 
       // Generate PDF
       const { generateInvoicePDF } = await import("./utils.js");
-      const pdfBuffer = await generateInvoicePDF(order, user!);
+      const pdfBuffer = await generateInvoicePDF(order, user || fallbackUser);
 
       console.log(
         `PDF generated successfully, size: ${pdfBuffer.length} bytes`,
@@ -1315,7 +1375,7 @@ export async function registerRoutes(
         ...order,
         isAwaitingPayment:
           order.paymentMethod === ("ziina" as PaymentMethod) &&
-          order.paymentStatus !== ("paid" as PaymentStatus),
+          order.paymentStatus !== "paid",
       }));
 
       res.json(annotatedOrders);
@@ -1361,50 +1421,6 @@ export async function registerRoutes(
       res.status(500).json({ error: "Failed to update order status" });
     }
   });
-
-  app.patch(
-    "/api/admin/orders/:id/payment-status",
-    requireAdmin,
-    async (req, res) => {
-      try {
-        const id = req.params.id as string;
-        const { paymentStatus } = req.body;
-
-        const validPaymentStatuses: PaymentStatus[] = [
-          "pending",
-          "paid",
-          "failed",
-          "refunded",
-        ];
-
-        if (!validPaymentStatuses.includes(paymentStatus as PaymentStatus)) {
-          return res.status(400).json({ error: "Invalid payment status" });
-        }
-
-        const existingOrder = await storage.getOrder(id);
-        if (!existingOrder) {
-          return res.status(404).json({ error: "Order not found" });
-        }
-
-        const updated = await storage.updateOrderPaymentStatus(
-          id,
-          paymentStatus as PaymentStatus,
-          undefined,
-          undefined,
-          false,
-        );
-
-        if (!updated) {
-          return res.status(404).json({ error: "Order not found" });
-        }
-
-        res.json(updated);
-      } catch (error) {
-        console.error("Update payment status error:", error);
-        res.status(500).json({ error: "Failed to update payment status" });
-      }
-    },
-  );
 
   app.get("/api/admin/users", requireAdmin, async (req, res) => {
     try {

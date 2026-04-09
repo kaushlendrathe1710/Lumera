@@ -1,94 +1,109 @@
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
+import { Link } from "wouter";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Loader2, Lock, Package } from "lucide-react";
 import { useCart, getDiscountedPrice } from "@/lib/cart";
-import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 import { Nav } from "@/components/nav";
-import { CheckoutAddressSelector } from "@/components/CheckoutAddressSelector";
-import type { Address } from "@shared/schema";
+import { setGuestOrderAccessToken } from "@/lib/guest-order-access";
+
+const UAE_EMIRATES = [
+  "Abu Dhabi",
+  "Ajman",
+  "Dubai",
+  "Fujairah",
+  "Ras Al Khaimah",
+  "Sharjah",
+  "Umm Al Quwain",
+] as const;
+
+const checkoutSchema = z.object({
+  fullName: z
+    .string()
+    .trim()
+    .min(2, "Full name must be at least 2 characters")
+    .max(120, "Full name must be at most 120 characters")
+    .regex(/^[A-Za-z\s'.-]+$/, "Use letters only for full name"),
+  address: z
+    .string()
+    .trim()
+    .min(5, "Address must be at least 5 characters")
+    .max(250, "Address must be at most 250 characters"),
+  city: z
+    .string()
+    .trim()
+    .min(2, "City must be at least 2 characters")
+    .max(100, "City must be at most 100 characters")
+    .regex(/^[A-Za-z\s'.-]+$/, "City must use letters only"),
+  phoneNumber: z
+    .string()
+    .trim()
+    .regex(/^\+[1-9][0-9]{7,14}$/, "Enter phone with country code, e.g. +971501234567"),
+  emirate: z.enum(UAE_EMIRATES, {
+    required_error: "Please select an emirate",
+  }),
+});
+
+type CheckoutFormValues = z.infer<typeof checkoutSchema>;
+
+function sanitizeAlphaInput(value: string) {
+  return value
+    .replace(/[^A-Za-z\s'.-]/g, "")
+    .replace(/\s{2,}/g, " ")
+    .replace(/^\s+/, "");
+}
+
+function sanitizePhoneWithCountryCode(value: string) {
+  const cleaned = value.replace(/[^+0-9]/g, "");
+  const hasPlus = cleaned.startsWith("+");
+  const digitsOnly = cleaned.replace(/\+/g, "");
+  const limitedDigits = digitsOnly.slice(0, 15);
+  return `${hasPlus ? "+" : ""}${limitedDigits}`;
+}
 
 export default function Checkout() {
-  const [, setLocation] = useLocation();
-  const { items, total, clearCart } = useCart();
-  const { user, isAuthenticated } = useAuth();
+  const { items, total } = useCart();
   const { toast } = useToast();
-
-  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
-  // Shipping is free site-wide
-  const shippingCost = 0;
-  const grandTotal = total;
-
-  // COD Order Mutation
-  const createOrderMutation = useMutation({
-    mutationFn: async () => {
-      if (!selectedAddress) {
-        throw new Error("Please select a delivery address");
-      }
-      const res = await apiRequest("POST", "/api/orders", {
-        addressId: selectedAddress.id,
-        shippingName: user?.name || "",
-        shippingPhone: user?.phoneNumber || "",
-        shippingAddress: `${selectedAddress.addressLine1}, ${selectedAddress.addressLine2 || ''}`.trim(),
-        shippingCity: selectedAddress.city,
-        shippingEmirate: selectedAddress.stateRegion,
-        items: items.map((item) => ({
-          productId: item.product.id,
-          quantity: item.quantity,
-        })),
-        totalAmount: grandTotal.toFixed(2),
-      });
-      return res.json();
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<CheckoutFormValues>({
+    resolver: zodResolver(checkoutSchema),
+    defaultValues: {
+      fullName: "",
+      address: "",
+      city: "",
+      phoneNumber: "",
+      emirate: undefined,
     },
-    onSuccess: (data) => {
-      clearCart();
-      queryClient.invalidateQueries({ queryKey: ["/api/orders/my-orders"] });
-      toast({
-        title: "Order Placed!",
-        description: `Your order #${data.orderNumber} has been placed successfully`,
-      });
-      setLocation(`/order-confirmation/${data.id}`);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to place order",
-        variant: "destructive",
-      });
-    },
+    mode: "onChange",
+    reValidateMode: "onChange",
   });
 
-  const validateForm = (): boolean => {
-    if (!selectedAddress) {
-      toast({
-        title: "Address Required",
-        description: "Please select a delivery address",
-        variant: "destructive",
-      });
-      return false;
-    }
-    return true;
-  };
+  // Shipping is free site-wide
+  const grandTotal = total;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!isAuthenticated) {
-      toast({
-        title: "Please sign in",
-        description: "You need to sign in to place an order",
-        variant: "destructive",
-      });
-      setLocation("/login");
-      return;
-    }
+  const handlePayment = async (values: CheckoutFormValues) => {
 
     if (items.length === 0) {
       toast({
@@ -99,14 +114,57 @@ export default function Checkout() {
       return;
     }
 
-    if (!validateForm()) {
-      return;
+    try {
+      setIsProcessingPayment(true);
+
+      const normalizedName = values.fullName.trim();
+      const normalizedAddress = values.address.trim();
+      const normalizedCity = values.city.trim();
+      const normalizedPhone = values.phoneNumber.trim();
+      const normalizedEmirate = values.emirate;
+      const guestEmail = `guest.${Date.now()}@lumera.local`;
+
+      const orderRes = await apiRequest("POST", "/api/orders", {
+        shippingName: normalizedName,
+        guestEmail,
+        shippingPhone: normalizedPhone,
+        shippingAddress: normalizedAddress,
+        shippingCity: normalizedCity,
+        shippingEmirate: normalizedEmirate,
+        items: items.map((item) => ({
+          productId: item.product.id,
+          quantity: item.quantity,
+        })),
+        totalAmount: grandTotal.toFixed(2),
+      });
+
+      const order = await orderRes.json();
+      const accessToken = order?.guestAccessToken || null;
+      if (accessToken) {
+        setGuestOrderAccessToken(order.id, accessToken);
+      }
+
+      const paymentRes = await apiRequest("POST", "/api/payments/create", {
+        orderId: order.id,
+        accessToken,
+      });
+
+      const paymentData = await paymentRes.json();
+      if (!paymentData?.redirect_url) {
+        throw new Error("Payment redirect URL not received");
+      }
+
+      window.location.href = paymentData.redirect_url;
+    } catch (err: any) {
+      toast({
+        title: "Payment Error",
+        description: err?.message || "Failed to initiate payment",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingPayment(false);
     }
-
-    createOrderMutation.mutate();
   };
-
-  const isSubmitting = createOrderMutation.isPending || isProcessingPayment;
 
   if (items.length === 0) {
     return (
@@ -137,79 +195,125 @@ export default function Checkout() {
           Checkout
         </h1>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(handlePayment)} noValidate>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Delivery Address</CardTitle>
+                  <CardTitle>Shipping Details</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <CheckoutAddressSelector
-                    selectedAddressId={selectedAddress?.id}
-                    onAddressSelect={setSelectedAddress}
-                  />
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <Controller
+                      control={control}
+                      name="fullName"
+                      render={({ field }) => (
+                        <Input
+                          id="fullName"
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(sanitizeAlphaInput(e.target.value))}
+                          onBlur={field.onBlur}
+                          placeholder="Enter your full name"
+                        />
+                      )}
+                    />
+                    {errors.fullName && (
+                      <p className="text-sm text-destructive" data-testid="error-fullName">
+                        {errors.fullName.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="address">Address</Label>
+                    <Textarea
+                      id="address"
+                      {...register("address")}
+                      placeholder="Street, building, apartment"
+                      rows={3}
+                    />
+                    {errors.address && (
+                      <p className="text-sm text-destructive" data-testid="error-address">
+                        {errors.address.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City</Label>
+                    <Controller
+                      control={control}
+                      name="city"
+                      render={({ field }) => (
+                        <Input
+                          id="city"
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(sanitizeAlphaInput(e.target.value))}
+                          onBlur={field.onBlur}
+                          placeholder="Dubai"
+                        />
+                      )}
+                    />
+                    {errors.city && (
+                      <p className="text-sm text-destructive" data-testid="error-city">
+                        {errors.city.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phoneNumber">Phone Number</Label>
+                    <Controller
+                      control={control}
+                      name="phoneNumber"
+                      render={({ field }) => (
+                        <Input
+                          id="phoneNumber"
+                          type="tel"
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(sanitizePhoneWithCountryCode(e.target.value))}
+                          onBlur={field.onBlur}
+                          placeholder="+971501234567"
+                          inputMode="tel"
+                        />
+                      )}
+                    />
+                    {errors.phoneNumber && (
+                      <p className="text-sm text-destructive" data-testid="error-phoneNumber">
+                        {errors.phoneNumber.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="emirate">Emirate</Label>
+                    <Controller
+                      control={control}
+                      name="emirate"
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger id="emirate">
+                            <SelectValue placeholder="Select emirate" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {UAE_EMIRATES.map((value) => (
+                              <SelectItem key={value} value={value}>
+                                {value}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.emirate && (
+                      <p className="text-sm text-destructive" data-testid="error-emirate">
+                        {errors.emirate.message}
+                      </p>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
-
-              {/* <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="h-5 w-5" />
-                    Payment Method
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <RadioGroup
-                    value={paymentMethod}
-                    onValueChange={(value) => setPaymentMethod(value as "card" | "cod")}
-                    className="space-y-3"
-                  >
-                    <div
-                      className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${
-                        paymentMethod === "card"
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/50"
-                      }`}
-                    >
-                      <RadioGroupItem value="card" id="card" data-testid="radio-card" />
-                      <Label htmlFor="card" className="flex-1 cursor-pointer">
-                        <div className="flex items-center gap-2">
-                          <CreditCard className="h-5 w-5 text-primary" />
-                          <div>
-                            <p className="font-medium text-foreground">Pay with Card</p>
-                            <p className="text-sm text-muted-foreground">
-                              Secure payment via Stripe
-                            </p>
-                          </div>
-                        </div>
-                      </Label>
-                      <Lock className="h-4 w-4 text-green-600" />
-                    </div>
-
-                    <div
-                      className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${
-                        paymentMethod === "cod"
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/50"
-                      }`}
-                    >
-                      <RadioGroupItem value="cod" id="cod" data-testid="radio-cod" />
-                      <Label htmlFor="cod" className="flex-1 cursor-pointer">
-                        <div className="flex items-center gap-2">
-                          <Truck className="h-5 w-5 text-primary" />
-                          <div>
-                            <p className="font-medium text-foreground">Cash on Delivery</p>
-                            <p className="text-sm text-muted-foreground">
-                              Pay when you receive your order
-                            </p>
-                          </div>
-                        </div>
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </CardContent>
-              </Card> */}
             </div>
 
             <div>
@@ -270,63 +374,17 @@ export default function Checkout() {
                   </div>
 
                   <Button
-                    type="button"
-                    onClick={async (e) => {
-                      e.preventDefault();
-                      if (!selectedAddress) return;
-
-                      try {
-                        setIsProcessingPayment(true);
-
-                        // Step 1: create pending order
-                        const orderRes = await apiRequest("POST", "/api/orders", {
-                          addressId: selectedAddress.id,
-                          shippingName: user?.name || "",
-                          shippingPhone: user?.phoneNumber || "",
-                          shippingAddress: `${selectedAddress.addressLine1}, ${selectedAddress.addressLine2 || ''}`.trim(),
-                          shippingCity: selectedAddress.city,
-                          shippingEmirate: selectedAddress.stateRegion,
-                          items: items.map((item) => ({
-                            productId: item.product.id,
-                            quantity: item.quantity,
-                          })),
-                          totalAmount: grandTotal.toFixed(2),
-                        });
-                        const order = await orderRes.json();
-
-                        // Step 2: create Ziina payment intent for the order
-                        const paymentRes = await apiRequest("POST", "/api/payments/create", {
-                          orderId: order.id,
-                        });
-                        const paymentData = await paymentRes.json();
-
-                        if (!paymentData?.redirect_url) {
-                          throw new Error("Payment redirect URL not received");
-                        }
-
-                        window.location.href = paymentData.redirect_url;
-                      } catch (err: any) {
-                        toast({
-                          title: "Payment Error",
-                          description: err?.message || "Failed to initiate payment",
-                          variant: "destructive",
-                        });
-                      } finally {
-                        setIsProcessingPayment(false);
-                      }
-                    }}
+                    type="submit"
                     className="w-full"
                     size="lg"
-                    disabled={isSubmitting || !selectedAddress}
+                    disabled={isProcessingPayment}
                     data-testid="button-place-order"
                   >
-                    {isSubmitting ? (
+                    {isProcessingPayment ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Processing...
                       </>
-                    ) : !selectedAddress ? (
-                      "Select a delivery address"
                     ) : (
                       <>
                         <Lock className="h-4 w-4 mr-2" />
