@@ -54,7 +54,7 @@ const checkoutSchema = z.object({
   phoneNumber: z
     .string()
     .trim()
-    .regex(/^\+[1-9][0-9]{7,14}$/, "Enter phone with country code, e.g. +971501234567"),
+    .regex(/^0?5\d{8}$/, "Enter UAE phone like 0501234567"),
   emirate: z.enum(UAE_EMIRATES, {
     required_error: "Please select an emirate",
   }),
@@ -69,12 +69,20 @@ function sanitizeAlphaInput(value: string) {
     .replace(/^\s+/, "");
 }
 
-function sanitizePhoneWithCountryCode(value: string) {
-  const cleaned = value.replace(/[^+0-9]/g, "");
-  const hasPlus = cleaned.startsWith("+");
-  const digitsOnly = cleaned.replace(/\+/g, "");
-  const limitedDigits = digitsOnly.slice(0, 15);
-  return `${hasPlus ? "+" : ""}${limitedDigits}`;
+function sanitizeUaeLocalPhone(value: string) {
+  // Remove non-digits
+  let digits = value.replace(/\D/g, "");
+  // If user pasted international form like 971XXXXXXXXX, convert to local 0XXXXXXXXX
+  if (digits.startsWith("971")) {
+    digits = "0" + digits.slice(3);
+  }
+  // If user entered 9-digit local without leading 0, add it (e.g. 501234567 -> 0501234567)
+  if (!digits.startsWith("0") && digits.length === 9 && digits.startsWith("5")) {
+    digits = "0" + digits;
+  }
+  // Limit to 10 digits (local UAE format: 0xxxxxxxxx)
+  digits = digits.slice(0, 10);
+  return digits;
 }
 
 export default function Checkout() {
@@ -272,9 +280,9 @@ export default function Checkout() {
                           id="phoneNumber"
                           type="tel"
                           value={field.value || ""}
-                          onChange={(e) => field.onChange(sanitizePhoneWithCountryCode(e.target.value))}
+                          onChange={(e) => field.onChange(sanitizeUaeLocalPhone(e.target.value))}
                           onBlur={field.onBlur}
-                          placeholder="+971501234567"
+                          placeholder="0501234567"
                           inputMode="tel"
                         />
                       )}

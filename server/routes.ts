@@ -140,7 +140,7 @@ const guestCheckoutSchema = z.object({
   totalAmount: z.string().regex(/^\d+(\.\d{1,2})?$/),
   addressId: z.string().nullable().optional(),
   shippingName: z.string().min(2).max(120),
-  shippingPhone: z.string().min(6).max(30),
+  shippingPhone: z.string().trim().regex(/^0?5\d{8}$/, "Enter UAE phone like 0501234567"),
   shippingAddress: z.string().min(5).max(250),
   shippingCity: z.string().min(2).max(100),
   shippingEmirate: z.string().min(2).max(100),
@@ -1224,6 +1224,14 @@ export async function registerRoutes(
 
       const payload = guestCheckoutSchema.parse(req.body);
 
+      // Normalize phone to local UAE format (leading 0, 10 digits)
+      const normalizeUaePhone = (raw: string) => {
+        let digits = (raw || "").replace(/\D/g, "");
+        if (digits.startsWith("971")) digits = "0" + digits.slice(3);
+        if (!digits.startsWith("0") && digits.length === 9 && digits.startsWith("5")) digits = "0" + digits;
+        return digits.slice(0, 10);
+      };
+
       const productsToOrder = await Promise.all(
         payload.items.map(async (item) => {
           const product = await storage.getProduct(item.productId);
@@ -1258,17 +1266,18 @@ export async function registerRoutes(
 
       // Ziina is the only supported payment method.
       const guestAccessToken = req.session.userId ? null : randomUUID();
+      const normalizedPhone = normalizeUaePhone(payload.shippingPhone);
       const order = await storage.createOrder({
         userId: req.session.userId || null,
         addressId: payload.addressId || null,
         guestAccessToken,
         guestName: payload.shippingName,
         guestEmail: payload.guestEmail,
-        guestPhone: payload.shippingPhone,
+        guestPhone: normalizedPhone,
         guestAddress: `${payload.shippingAddress}, ${payload.shippingCity}, ${payload.shippingEmirate}`,
         totalAmount: computedTotal.toFixed(2),
         shippingName: payload.shippingName,
-        shippingPhone: payload.shippingPhone,
+        shippingPhone: normalizedPhone,
         shippingAddress: payload.shippingAddress,
         shippingCity: payload.shippingCity,
         shippingEmirate: payload.shippingEmirate,
