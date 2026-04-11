@@ -298,9 +298,9 @@ export default function ProductDetail() {
                         </>
                         ) : (null)}
                   </div>
-                  <span className="text-sm text-muted-foreground">
+                  {/* <span className="text-sm text-muted-foreground">
                     {product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}
-                  </span>
+                  </span> */}
                 </div>
 
                   {cartItems.some(item => item.product.id === product.id) ? (
